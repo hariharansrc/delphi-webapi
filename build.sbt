@@ -2,7 +2,7 @@ import com.typesafe.sbt.packager.linux.LinuxPlugin.autoImport.daemonUser
 
 name := "delphi-webapi"
 
-version := "1.0-SNAPSHOT"
+version := "1.0.0-SNAPSHOT"
 
 scalaVersion := "2.12.4"
 
