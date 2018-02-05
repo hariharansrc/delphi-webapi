@@ -10,7 +10,6 @@ libraryDependencies += "org.parboiled" %% "parboiled" % "2.1.4"
 libraryDependencies += "com.typesafe.akka" %% "akka-http" % "10.0.11"
 
 lazy val root = (project in file(".")).
-  enablePlugins(UniversalPlugin).
   enablePlugins(JavaAppPackaging).
   enablePlugins(DockerPlugin).
   settings (
