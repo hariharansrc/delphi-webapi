@@ -19,9 +19,9 @@ object Server {
 
     val route =
       path("version") { version } ~
-      pathPrefix("search" / Remaining) { query => search(query) } ~
-      path("features") { features } ~
-      pathPrefix("retrieve" / Remaining) { identifier => retrieve(identifier) }
+        path("features") { features } ~
+        pathPrefix("search" / Remaining) { query => search(query) } ~
+        pathPrefix("retrieve" / Remaining) { identifier => retrieve(identifier) }
 
 
     val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
@@ -35,25 +35,31 @@ object Server {
 
   private def version = {
     get {
-      complete{ BuildInfo.version }
+      complete {
+        BuildInfo.version
+      }
     }
   }
 
   private def features = {
     get {
-      complete { "features" }
+      complete {
+        "features"
+      }
     }
   }
 
-  def retrieve(identifier : String)  = {
+  def retrieve(identifier: String) = {
     get {
-      complete (identifier)
+      complete(identifier)
     }
   }
 
   def search(query: String) = {
     get {
-      complete {query}
+      complete {
+        query
+      }
     }
   }
 
