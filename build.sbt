@@ -10,6 +10,10 @@ libraryDependencies += "com.typesafe.akka" %% "akka-http" % "10.0.11"
 lazy val root = (project in file(".")).
   enablePlugins(JavaAppPackaging).
   enablePlugins(DockerPlugin).
+  settings (
+    dockerBaseImage := "openjdk:jre-alpine"
+  ).
+  enablePlugins(AshScriptPlugin).
   enablePlugins(BuildInfoPlugin).
   settings(
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
