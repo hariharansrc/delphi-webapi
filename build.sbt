@@ -7,7 +7,7 @@ scalaVersion := "2.12.4"
 libraryDependencies += "org.parboiled" %% "parboiled" % "2.1.4"
 libraryDependencies += "com.typesafe.akka" %% "akka-http" % "10.0.11"
 
-lazy val root = (project in file(".")).
+lazy val webapi = (project in file(".")).
   enablePlugins(JavaAppPackaging).
   enablePlugins(DockerPlugin).
   settings (
@@ -19,4 +19,3 @@ lazy val root = (project in file(".")).
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
     buildInfoPackage := "de.upb.cs.swt.delphi.webapi"
   )
-
