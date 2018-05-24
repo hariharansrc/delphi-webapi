@@ -45,7 +45,8 @@ object Server extends HttpApp {
   }
 
   def main(args: Array[String]): Unit = {
-    Server.startServer("0.0.0.0", 8080)
+    val configuration = new Configuration()
+    Server.startServer(configuration.bindHost, configuration.bindPort)
   }
 
 
