@@ -1,11 +1,13 @@
 package de.upb.cs.swt.delphi.webapi
 
 import akka.http.scaladsl.server.HttpApp
+import de.upb.cs.swt.delphi.featuredefinitions.FeatureListMapping
+import spray.json._
 
 /**
   * Web server configuration for Delphi web API.
   */
-object Server extends HttpApp {
+object Server extends HttpApp with JsonSupport {
 
    override def routes =
       path("version") { version } ~
@@ -25,7 +27,7 @@ object Server extends HttpApp {
   private def features = {
     get {
       complete {
-        "features"
+        FeatureListMapping.featureList.toJson
       }
     }
   }

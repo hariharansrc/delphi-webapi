@@ -6,6 +6,9 @@ scalaVersion := "2.12.4"
 
 libraryDependencies += "org.parboiled" %% "parboiled" % "2.1.4"
 libraryDependencies += "com.typesafe.akka" %% "akka-http" % "10.0.11"
+libraryDependencies += "com.typesafe.akka" %% "akka-stream" % "2.5.12"
+libraryDependencies += "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.1"
+libraryDependencies += "io.spray" %%  "spray-json" % "1.3.3"
 
 val elastic4sVersion = "6.2.8"
 libraryDependencies ++= Seq(
