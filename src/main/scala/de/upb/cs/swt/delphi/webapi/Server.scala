@@ -34,7 +34,9 @@ object Server extends HttpApp with JsonSupport {
 
   def retrieve(identifier: String) = {
     get {
-      complete(identifier)
+      complete(
+        ElasticClient.getSource(identifier)
+      )
     }
   }
 
