@@ -1,13 +1,24 @@
 package de.upb.cs.swt.delphi.webapi
 
+import java.util.concurrent.TimeUnit
+
+import akka.actor.ActorSystem
 import akka.http.scaladsl.server.HttpApp
+import akka.pattern.ask
+import akka.util.Timeout
 import de.upb.cs.swt.delphi.featuredefinitions.FeatureListMapping
+import de.upb.cs.swt.delphi.webapi.ElasticActorManager.Retrieve
 import spray.json._
 
 /**
   * Web server configuration for Delphi web API.
   */
 object Server extends HttpApp with JsonSupport {
+
+  private val configuration = new Configuration()
+  private val system = ActorSystem("delphi-webapi")
+  private val actorManager = system.actorOf(ElasticActorManager.props(configuration))
+  implicit val timeout = Timeout(5, TimeUnit.SECONDS)
 
    override def routes =
       path("version") { version } ~
@@ -35,7 +46,7 @@ object Server extends HttpApp with JsonSupport {
   def retrieve(identifier: String) = {
     get {
       complete(
-        ElasticClient.getSource(identifier)
+        (actorManager ? Retrieve(identifier)).mapTo[String]
       )
     }
   }
@@ -51,6 +62,7 @@ object Server extends HttpApp with JsonSupport {
   def main(args: Array[String]): Unit = {
     val configuration = new Configuration()
     Server.startServer(configuration.bindHost, configuration.bindPort)
+    system.terminate()
   }
 
 
