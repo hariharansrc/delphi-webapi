@@ -1,6 +1,6 @@
 package de.upb.cs.swt.delphi.webapi
 
-import akka.actor.{Actor, ActorLogging, PoisonPill, Props, ReceiveTimeout}
+import akka.actor.{Actor, ActorLogging, Props, ReceiveTimeout}
 import com.sksamuel.elastic4s.IndexAndType
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.HttpClient

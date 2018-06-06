@@ -7,13 +7,13 @@ import akka.http.scaladsl.server.HttpApp
 import akka.pattern.ask
 import akka.util.Timeout
 import de.upb.cs.swt.delphi.featuredefinitions.FeatureListMapping
-import de.upb.cs.swt.delphi.webapi.ElasticActorManager.Retrieve
+import de.upb.cs.swt.delphi.webapi.ElasticActorManager.{Enqueue, Retrieve}
 import spray.json._
 
 /**
   * Web server configuration for Delphi web API.
   */
-object Server extends HttpApp with JsonSupport {
+object Server extends HttpApp with JsonSupport with AppLogging {
 
   private val configuration = new Configuration()
   private val system = ActorSystem("delphi-webapi")
@@ -24,7 +24,8 @@ object Server extends HttpApp with JsonSupport {
       path("version") { version } ~
         path("features") { features } ~
         pathPrefix("search" / Remaining) { query => search(query) } ~
-        pathPrefix("retrieve" / Remaining) { identifier => retrieve(identifier) }
+        pathPrefix("retrieve" / Remaining) { identifier => retrieve(identifier) } ~
+        pathPrefix("enqueue" / Remaining) { identifier => enqueue(identifier) }
 
 
   private def version = {
@@ -48,6 +49,16 @@ object Server extends HttpApp with JsonSupport {
       complete(
         (actorManager ? Retrieve(identifier)).mapTo[String]
       )
+    }
+  }
+
+  def enqueue(identifier: String) = {
+    get {
+      pass {    //TODO: Require authorization here
+        complete(
+          (actorManager ? Enqueue(identifier)).mapTo[String]
+        )
+      }
     }
   }
 
