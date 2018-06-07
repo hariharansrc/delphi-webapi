@@ -8,6 +8,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import de.upb.cs.swt.delphi.featuredefinitions.FeatureListMapping
 import de.upb.cs.swt.delphi.webapi.ElasticActorManager.{Enqueue, Retrieve}
+import de.upb.cs.swt.delphi.webapi.ElasticRequestLimiter.Validate
 import spray.json._
 
 /**
@@ -18,6 +19,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
   private val configuration = new Configuration()
   private val system = ActorSystem("delphi-webapi")
   private val actorManager = system.actorOf(ElasticActorManager.props(configuration))
+  private val requestLimiter = system.actorOf(ElasticRequestLimiter.props(configuration, actorManager))
   implicit val timeout = Timeout(5, TimeUnit.SECONDS)
 
    override def routes =
@@ -46,9 +48,15 @@ object Server extends HttpApp with JsonSupport with AppLogging {
 
   def retrieve(identifier: String) = {
     get {
-      complete(
-        (actorManager ? Retrieve(identifier)).mapTo[String]
-      )
+      pass {    //TODO: Require authentication here
+        complete(
+          (actorManager ? Retrieve(identifier)).mapTo[String]
+        )
+      } ~ extractClientIP{ ip =>
+        complete(
+          (requestLimiter ? Validate(ip, Retrieve(identifier))).mapTo[String]
+        )
+      }
     }
   }
 

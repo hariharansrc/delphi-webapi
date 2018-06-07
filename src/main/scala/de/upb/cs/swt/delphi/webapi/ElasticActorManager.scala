@@ -28,6 +28,6 @@ object ElasticActorManager{
   def props(configuration: Configuration) : Props = Props(new ElasticActorManager(configuration))
     .withMailbox("es-priority-mailbox")
 
-  final case class Retrieve(id: String)
-  final case class Enqueue(id: String)
+  final case class Retrieve(id: String) extends ElasticMessage
+  final case class Enqueue(id: String) extends ElasticMessage
 }
