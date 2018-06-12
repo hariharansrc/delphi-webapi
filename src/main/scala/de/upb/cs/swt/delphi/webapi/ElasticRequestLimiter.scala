@@ -5,6 +5,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.actor.Timers
 import akka.http.scaladsl.model.RemoteAddress
 import de.upb.cs.swt.delphi.webapi.ElasticRequestLimiter._
+import de.upb.cs.swt.delphi.webapi.ElasticActorManager.ElasticMessage
 
 import scala.concurrent.duration._
 import scala.collection.mutable
