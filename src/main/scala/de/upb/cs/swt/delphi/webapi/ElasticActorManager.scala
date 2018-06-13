@@ -2,15 +2,14 @@ package de.upb.cs.swt.delphi.webapi
 
 import akka.actor.{Actor, ActorLogging, Props, Terminated}
 import akka.routing.{ActorRefRoutee, RoundRobinRoutingLogic, Router}
-import de.upb.cs.swt.delphi.webapi.ElasticActorManager.{Enqueue, Retrieve}
-import de.upb.cs.swt.delphi.webapi.ElasticActor.GetSource
+import de.upb.cs.swt.delphi.webapi.ElasticActorManager.ElasticMessage
 
 class ElasticActorManager(configuration: Configuration) extends Actor with ActorLogging{
 
   private val index = configuration.esProjectIndex
   private var elasticRouter = {
     val routees = Vector.fill(configuration.elasticActorPoolSize) {
-      val r = context.actorOf(ElasticActor.props(configuration))
+      val r = context.actorOf(ElasticActor.props(configuration, index))
       context watch r
       ActorRefRoutee(r)
     }
@@ -21,19 +20,16 @@ class ElasticActorManager(configuration: Configuration) extends Actor with Actor
   override def postStop(): Unit = log.info("Actor manager shut down")
 
   override def receive = {
-    case Retrieve(id) => getSource(id)
-    case Enqueue(id) =>  getSource(id)
+    case em: ElasticMessage => {
+      log.info("Forwarding request {} to ElasticActor", em)
+      elasticRouter.route(em, sender())
+    }
     case Terminated(id) => {
       elasticRouter.removeRoutee(id)
-      val r = context.actorOf(ElasticActor.props(configuration))
+      val r = context.actorOf(ElasticActor.props(configuration, index))
       context watch r
       elasticRouter = elasticRouter.addRoutee(r)
     }
-  }
-
-  private def getSource(id: String) = {
-    log.info("Forwarding search for entry {}", id)
-    elasticRouter.route(GetSource(id, index), sender())
   }
 }
 
