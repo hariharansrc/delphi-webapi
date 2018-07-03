@@ -29,6 +29,7 @@ libraryDependencies ++= Seq(
 lazy val webapi = (project in file(".")).
   enablePlugins(JavaAppPackaging).
   enablePlugins(DockerPlugin).
+  enablePlugins(ScalastylePlugin).
   settings (
     dockerBaseImage := "openjdk:jre-alpine"
   ).
@@ -38,3 +39,10 @@ lazy val webapi = (project in file(".")).
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
     buildInfoPackage := "de.upb.cs.swt.delphi.webapi"
   )
+
+lazy val scalastyleTask = taskKey[Unit]("scalastyleTask")
+scalastyleTask :={
+  scalastyle.in(Compile).toTask("").value
+  scalastyle.in(Test).toTask("").value
+}
+(test in Test) := ((test in Test) dependsOn scalastyleTask).value
