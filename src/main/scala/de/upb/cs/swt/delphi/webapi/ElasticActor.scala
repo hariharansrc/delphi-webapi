@@ -2,8 +2,8 @@ package de.upb.cs.swt.delphi.webapi
 
 import akka.actor.{Actor, ActorLogging, Props}
 import com.sksamuel.elastic4s.IndexAndType
+import com.sksamuel.elastic4s.http.{ElasticClient, RequestFailure, RequestSuccess}
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.http.HttpClient
 import de.upb.cs.swt.delphi.webapi.ElasticActorManager.{Enqueue, Retrieve}
 
 import scala.concurrent.ExecutionContext
@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 class ElasticActor(configuration: Configuration, index: IndexAndType) extends Actor with ActorLogging{
 
   implicit val executionContext: ExecutionContext = context.system.dispatchers.lookup("elasticsearch-handling-dispatcher")
-  val client = HttpClient(configuration.elasticsearchClientUri)
+  val client = ElasticClient(configuration.elasticsearchClientUri)
 
   override def preStart(): Unit = log.info("Search actor started")
   override def postStop(): Unit = log.info("Search actor shut down")
@@ -25,11 +25,13 @@ class ElasticActor(configuration: Configuration, index: IndexAndType) extends Ac
 
   private def getSource(id: String) = {
     log.info("Executing get on entry {}", id)
-    def source = client.execute{
+    def queryResponse = client.execute{
       get(id).from(index)
-    }.await match {
-      case Right(res) => res.body.get
-      case Left(_) => Option.empty
+    }.await
+
+    val source = queryResponse match {
+      case results: RequestSuccess[_] => results.body.get
+      case failure: RequestFailure => Option.empty
     }
     sender().tell(source, context.self)
   }
