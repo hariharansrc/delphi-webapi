@@ -38,3 +38,5 @@ lazy val webapi = (project in file(".")).
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
     buildInfoPackage := "de.upb.cs.swt.delphi.webapi"
   )
+
+scalastyleConfig := baseDirectory.value / "project" / "scalastyle_config.xml"
