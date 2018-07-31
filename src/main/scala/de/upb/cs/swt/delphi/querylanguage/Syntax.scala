@@ -19,34 +19,33 @@ class Syntax(val input : ParserInput) extends Parser {
     capture(oneOrMore(CharPredicate.Alpha))
   }
 
-  def ConditionRule = rule {
-    SingularConditionRule // | ConjunctionRule | DisjunctionRule
+  def ConditionRule : Rule1[ConditionExpr] = rule {
+    SingularConditionRule | AndRule | OrRule | NotRule | XorRule
   }
 
   def SingularConditionRule = rule {
-    EqualRule |
-    NotEqualRule |
-    GreaterThanRule |
-    GreaterOrEqual |
-    LessThan |
-    LessOrEqual |
-    Like
+    EqualRule | NotEqualRule | GreaterThanRule | GreaterOrEqual | LessThan | LessOrEqual | Like | True
   }
 
-  /*
-  def ConjunctionRule = rule {
-    ConditionRule ~ "&&" ~ ConditionRule
-  }
+  /* Combinatory rules */
 
-  def DisjunctionRule = rule {
-    ConditionRule ~ "||" ~ ConditionRule
+  def AndRule = rule {
+    ConditionRule ~ "&&" ~ ConditionRule ~> AndExpr
   }
-  */
-
+  def OrRule = rule {
+    ConditionRule ~ "||" ~ ConditionRule ~> OrExpr
+  }
+  def NotRule = rule {
+    "!" ~ ConditionRule ~> NotExpr
+  }
+  def XorRule = rule {
+    ConditionRule ~ "XX" ~ ConditionRule ~> XorExpr
+  }
   def Literal = rule {
-    NumberLiteral |
-    StringLiteral
+    NumberLiteral | StringLiteral
   }
+
+  /* Literals */
 
   def StringLiteral = rule {
     capture(oneOrMore(CharPredicate.AlphaNum))
@@ -56,28 +55,31 @@ class Syntax(val input : ParserInput) extends Parser {
     capture(oneOrMore(CharPredicate.Digit))
   }
 
+  /* Value operators */
+
   def EqualRule = rule {
-    "=" ~ Literal
+    "=" ~ Literal ~> ConstantValue
   }
   def NotEqualRule = rule {
-    "!=" ~ NumberLiteral
+    "!=" ~ NumberLiteral ~> ConstantValue
   }
   def GreaterThanRule = rule {
-    ">" ~ NumberLiteral
+    ">" ~ NumberLiteral ~> ConstantValue
   }
   def GreaterOrEqual = rule {
-    ">=" ~ NumberLiteral
+    ">=" ~ NumberLiteral ~> ConstantValue
   }
-
   def LessThan = rule {
-    "<" ~ NumberLiteral
+    "<" ~ NumberLiteral ~> ConstantValue
   }
   def LessOrEqual = rule {
-    "=<" ~ NumberLiteral
+    "<=" ~ NumberLiteral ~> ConstantValue
   }
-
   def Like = rule {
-    "~" ~ StringLiteral
+    "%" ~ StringLiteral ~ "%" ~> ConstantValue
+  }
+  def True = rule {
+    StringLiteral ~> ConstantValue
   }
 }
 
