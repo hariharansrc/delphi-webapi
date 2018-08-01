@@ -1,9 +1,7 @@
 package de.upb.cs.swt.delphi.querylanguage
 
-trait Expression {}
-
-trait ConditionExpr extends Expression {
-  def -->(expr: Expression): Expression = {
+trait CombinatorialExpr {
+  def -->(expr: CombinatorialExpr): CombinatorialExpr = {
     expr match {
       case AndExpr(left, right) => AndExpr(left, right)
       case OrExpr(left, right) => OrExpr(left, right)
@@ -14,13 +12,13 @@ trait ConditionExpr extends Expression {
   }
 }
 
-case class AndExpr(Left: Expression, Right: Expression) extends ConditionExpr
-case class OrExpr(Left: Expression, Right: Expression) extends ConditionExpr
-case class NotExpr(Expr: Expression) extends ConditionExpr
-case class XorExpr(Left: Expression, Right: Expression) extends ConditionExpr
+case class AndExpr(Left: CombinatorialExpr, Right: CombinatorialExpr) extends CombinatorialExpr
+case class OrExpr(Left: CombinatorialExpr, Right: CombinatorialExpr) extends CombinatorialExpr
+case class NotExpr(Expr: CombinatorialExpr) extends CombinatorialExpr
+case class XorExpr(Left: CombinatorialExpr, Right: CombinatorialExpr) extends CombinatorialExpr
 
-trait SingularConditionExpr extends ConditionExpr {
-  override def -->(expr: Expression): Expression = {
+trait SingularConditionExpr extends CombinatorialExpr {
+  override def -->(expr: CombinatorialExpr): CombinatorialExpr = {
     expr match {
       case EqualExpr(left, right) => EqualExpr(left, right)
       case NotEqualExpr(left, right) => NotEqualExpr(left, right)
@@ -29,7 +27,6 @@ trait SingularConditionExpr extends ConditionExpr {
       case LessThanExpr(left, right) => LessThanExpr(left, right)
       case LessOrEqualExpr(left, right) => LessOrEqualExpr(left, right)
       case LikeExpr(left, right) => LikeExpr(left, right)
-      case TrueExpr(expr) => TrueExpr(expr)
       case _ => null
     }
   }

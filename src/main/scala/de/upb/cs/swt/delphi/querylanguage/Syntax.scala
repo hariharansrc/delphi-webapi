@@ -4,76 +4,46 @@ import org.parboiled2.{CharPredicate, Parser, ParserInput, Rule1}
 
 /**
   * Created by benhermann on 03.02.18.
+  * Author: Lisa Nguyen Quang Do 01.08.2018
   */
 class Syntax(val input : ParserInput) extends Parser {
 
   def QueryRule = rule {
-    ConditionRule ~ EOI
+    CombinatorialRule ~ EOI
   }
 
-  def ConditionRule : Rule1[ConditionExpr] = rule {
-    SingularConditionRule | NotRule | AndRule | OrRule | XorRule
+  // Combinatorial rules.
+  def CombinatorialRule : Rule1[CombinatorialExpr] = rule {
+    NotRule |
+    Factor ~ zeroOrMore(
+        "&&" ~ Factor ~> AndExpr |
+          "||" ~ Factor ~> OrExpr |
+          "%%" ~ Factor ~> XorExpr)
   }
 
+  // Handling parentheses.
+  def Factor : Rule1[CombinatorialExpr] = rule {
+    Parentheses | SingularConditionRule | NotRule
+  }
+  def Parentheses = rule { '(' ~ CombinatorialRule ~ ')' }
+  def NotRule = rule { '!' ~ (CombinatorialRule | Parentheses) ~> NotExpr }
+
+  // Singular conditions.
   def SingularConditionRule = rule {
-    EqualRule | NotEqualRule | GreaterThanRule | GreaterOrEqual | LessThan | LessOrEqual | Like | True
+    EqualRule | NotEqualRule | GreaterThanRule | GreaterOrEqual |
+      LessThan | LessOrEqual | Like | True
   }
+  def EqualRule = rule { Literal ~ "=" ~ Literal ~> EqualExpr }
+  def NotEqualRule = rule { Literal ~ "!=" ~ Literal ~> NotEqualExpr }
+  def GreaterThanRule = rule { Literal ~ ">" ~ Literal ~> GreaterThanExpr }
+  def GreaterOrEqual = rule { Literal ~ ">=" ~ Literal ~> GreaterOrEqualExpr }
+  def LessThan = rule { Literal ~ "<" ~ Literal ~> LessThanExpr }
+  def LessOrEqual = rule { Literal ~ "<=" ~ Literal ~> LessOrEqualExpr }
+  def Like = rule { Literal ~ "%" ~ Literal ~> LikeExpr }
+  def True = rule { Literal ~> TrueExpr }
 
-  /* Combinatory rules */
-
-  def AndRule = rule {
-    ConditionRule ~ "&&" ~ ConditionRule ~> AndExpr
-  }
-  def OrRule = rule {
-    ConditionRule ~ "||" ~ ConditionRule ~> OrExpr
-  }
-  def NotRule = rule {
-    "!" ~ ConditionRule ~> NotExpr
-  }
-  def XorRule = rule {
-    ConditionRule ~ "XX" ~ ConditionRule ~> XorExpr
-  }
-
-  /* Literals */
-
-  def Literal = rule {
-    NumberLiteral | StringLiteral
-  }
-
-  def StringLiteral = rule {
-    capture(oneOrMore(CharPredicate.AlphaNum))
-  }
-
-  def NumberLiteral = rule {
-    capture(oneOrMore(CharPredicate.Digit))
-  }
-
-  /* Value operators */
-
-  def EqualRule = rule {
-    StringLiteral ~ "=" ~ Literal ~> EqualExpr
-  }
-  def NotEqualRule = rule {
-    StringLiteral ~ "!=" ~ Literal ~> NotEqualExpr
-  }
-  def GreaterThanRule = rule {
-    StringLiteral ~ ">" ~ NumberLiteral ~> GreaterThanExpr
-  }
-  def GreaterOrEqual = rule {
-    StringLiteral ~ ">=" ~ NumberLiteral ~> GreaterOrEqualExpr
-  }
-  def LessThan = rule {
-    StringLiteral ~ "<" ~ NumberLiteral ~> LessThanExpr
-  }
-  def LessOrEqual = rule {
-    StringLiteral ~ "<=" ~ NumberLiteral ~> LessOrEqualExpr
-  }
-  def Like = rule {
-    StringLiteral ~ "%" ~ StringLiteral ~ "%" ~> LikeExpr
-  }
-  def True = rule {
-    StringLiteral ~> TrueExpr
-  }
+  // Literals
+  def Literal = rule { capture(oneOrMore(CharPredicate.AlphaNum)) ~> (_.toString) }
 }
 
 

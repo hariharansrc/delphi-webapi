@@ -5,30 +5,63 @@ import scala.util.{Failure, Success}
 
 class SyntaxTest extends FlatSpec with Matchers {
 
-  "Syntax.oneFilterEqual" should "be valid" in {
-    val parseResult = new Syntax("Filter1=3").QueryRule.run()
+  "Syntax.singularConditionWithOperator" should "be valid" in {
+    val parseResult = new Syntax("Filter1=abc").QueryRule.run()
     parseResult shouldBe a [Success[_]]
   }
 
-  "Syntax.oneFilterTrue" should "be valid" in {
+  "Syntax.singularConditionNoOperator" should "be valid" in {
     val parseResult = new Syntax("Filter1").QueryRule.run()
     parseResult shouldBe a [Success[_]]
   }
 
-  "Syntax.oneFilterLessOrEqualTypo" should "be valid" in {
+  "Syntax.singularConditionTypo" should "be valid" in {
     val parseResult = new Syntax("Filter1=<3").QueryRule.run()
     parseResult shouldBe a [Failure[_]]
   }
 
-  // TODO: Fix infinite loop.
-  "Syntax.oneFilterFalse" should "be valid" in {
-    val parseResult = new Syntax("!Filter2").QueryRule.run()
+  "Syntax.singularConditionOddCharacters" should "be valid" in {
+    val parseResult = new Syntax("Filter1%Filter2%'}.:").QueryRule.run()
+    parseResult shouldBe a [Failure[_]]
+  }
+
+  "Syntax.combinatoryConditionSimple" should "be valid" in {
+    val parseResult = new Syntax("Filter1&&Filter2=3").QueryRule.run()
     parseResult shouldBe a [Success[_]]
   }
 
-  // TODO: Fix false test. Related to the infinite loop issue.
-  "Syntax.twoFiltersOr" should "be valid" in {
-    val parseResult = new Syntax("Filter1=3||Filter2=5").QueryRule.run()
+  "Syntax.combinatoryConditionParentheses" should "be valid" in {
+    val parseResult = new Syntax("Filter1||Filter2&&(Filter3<3||Filter4>0)").QueryRule.run()
+    parseResult shouldBe a [Success[_]]
+  }
+
+  "Syntax.combinatoryConditionParenthesesComplex" should "be valid" in {
+    val parseResult = new Syntax("Filter1&&(Filter2<3||Filter2>0%%(Filter4&&Filter5))").QueryRule.run()
+    parseResult shouldBe a [Success[_]]
+  }
+
+  "Syntax.combinatoryConditionNonMatchingParentheses" should "be valid" in {
+    val parseResult = new Syntax("Filter1&&(Filter2<3||Filter2>0%%(Filter4)").QueryRule.run()
+    parseResult shouldBe a [Failure[_]]
+  }
+
+  "Syntax.combinatoryConditionTypo" should "be valid" in {
+    val parseResult = new Syntax("Filter1&Filter2<3)").QueryRule.run()
+    parseResult shouldBe a [Failure[_]]
+  }
+
+  "Syntax.notConditionSimple" should "be valid" in {
+    val parseResult = new Syntax("Filter1&&!Filter2").QueryRule.run()
+    parseResult shouldBe a [Success[_]]
+  }
+
+  "Syntax.notConditionSimpleParentheses" should "be valid" in {
+    val parseResult = new Syntax("!(Filter1&&Filter2)").QueryRule.run()
+    parseResult shouldBe a [Success[_]]
+  }
+
+  "Syntax.notConditionComplex" should "be valid" in {
+    val parseResult = new Syntax("!!(Filter1)&&!(Filter2<=0||!(Filter3&&!Filter4%abc))").QueryRule.run()
     parseResult shouldBe a [Success[_]]
   }
 
