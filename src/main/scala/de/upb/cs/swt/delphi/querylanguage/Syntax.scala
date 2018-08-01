@@ -8,15 +8,7 @@ import org.parboiled2.{CharPredicate, Parser, ParserInput, Rule1}
 class Syntax(val input : ParserInput) extends Parser {
 
   def QueryRule = rule {
-    QueryElementRule ~ EOI
-  }
-
-  def QueryElementRule = rule {
-    FeatureIdentifierRule ~  ConditionRule
-  }
-
-  def FeatureIdentifierRule = rule {
-    capture(oneOrMore(CharPredicate.Alpha))
+    ConditionRule ~ EOI
   }
 
   def ConditionRule : Rule1[ConditionExpr] = rule {
@@ -41,11 +33,12 @@ class Syntax(val input : ParserInput) extends Parser {
   def XorRule = rule {
     ConditionRule ~ "XX" ~ ConditionRule ~> XorExpr
   }
+
+  /* Literals */
+
   def Literal = rule {
     NumberLiteral | StringLiteral
   }
-
-  /* Literals */
 
   def StringLiteral = rule {
     capture(oneOrMore(CharPredicate.AlphaNum))
@@ -58,31 +51,29 @@ class Syntax(val input : ParserInput) extends Parser {
   /* Value operators */
 
   def EqualRule = rule {
-    "=" ~ Literal ~> ConstantValue
+    StringLiteral ~ "=" ~ Literal ~> EqualExpr
   }
   def NotEqualRule = rule {
-    "!=" ~ NumberLiteral ~> ConstantValue
+    StringLiteral ~ "!=" ~ Literal ~> NotEqualExpr
   }
   def GreaterThanRule = rule {
-    ">" ~ NumberLiteral ~> ConstantValue
+    StringLiteral ~ ">" ~ NumberLiteral ~> GreaterThanExpr
   }
   def GreaterOrEqual = rule {
-    ">=" ~ NumberLiteral ~> ConstantValue
+    StringLiteral ~ ">=" ~ NumberLiteral ~> GreaterOrEqualExpr
   }
   def LessThan = rule {
-    "<" ~ NumberLiteral ~> ConstantValue
+    StringLiteral ~ "<" ~ NumberLiteral ~> LessThanExpr
   }
   def LessOrEqual = rule {
-    "<=" ~ NumberLiteral ~> ConstantValue
+    StringLiteral ~ "<=" ~ NumberLiteral ~> LessOrEqualExpr
   }
   def Like = rule {
-    "%" ~ StringLiteral ~ "%" ~> ConstantValue
+    StringLiteral ~ "%" ~ StringLiteral ~ "%" ~> LikeExpr
   }
   def True = rule {
-    StringLiteral ~> ConstantValue
+    StringLiteral ~> TrueExpr
   }
 }
 
-class StringLiteral(value : String) {}
 
-class NumberLiteral(value : Integer) {}
