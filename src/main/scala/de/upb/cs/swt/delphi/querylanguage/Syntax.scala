@@ -12,7 +12,7 @@ class Syntax(val input : ParserInput) extends Parser {
   }
 
   def ConditionRule : Rule1[ConditionExpr] = rule {
-    SingularConditionRule | AndRule | OrRule | NotRule | XorRule
+    SingularConditionRule | NotRule | AndRule | OrRule | XorRule
   }
 
   def SingularConditionRule = rule {
