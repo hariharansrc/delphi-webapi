@@ -33,8 +33,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
   private def version = {
     get {
       complete {
-        // BuildInfo.version
-        "Lala"
+        BuildInfo.version
       }
     }
   }
