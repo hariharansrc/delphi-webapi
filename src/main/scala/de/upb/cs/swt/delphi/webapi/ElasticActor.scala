@@ -26,7 +26,10 @@ class ElasticActor(configuration: Configuration, index: IndexAndType) extends Ac
   private def getSource(id: String) = {
     log.info("Executing get on entry {}", id)
     def queryResponse = client.execute{
-      get(id).from(index)
+      log.info(s"Got retrieve request for $id.")
+      searchWithType(index) query must (
+        matchQuery("name", s"http://repo1.maven.org/maven2/:$id")
+      )
     }.await
 
     val source = queryResponse match {
