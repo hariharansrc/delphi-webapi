@@ -17,11 +17,16 @@ class Syntax(val input : ParserInput) extends Parser {
 
   // Combinatorial rules.
   def CombinatorialRule : Rule1[CombinatorialExpr] = rule {
-    NotRule |
-    Factor ~ zeroOrMore(
-        "&&" ~ Factor ~> AndExpr |
-          "||" ~ Factor ~> OrExpr |
-          "%%" ~ Factor ~> XorExpr)
+    OrOrElseRule | NotRule
+  }
+  def OrOrElseRule = rule {
+    AndOrElseRule ~ zeroOrMore("||" ~ AndOrElseRule ~> OrExpr)
+  }
+  def AndOrElseRule = rule {
+    XorOrElseRule ~ zeroOrMore("&&" ~ XorOrElseRule ~> AndExpr)
+  }
+  def XorOrElseRule = rule {
+    Factor ~ zeroOrMore("%%" ~ Factor ~> XorExpr)
   }
 
   // Handling parentheses.
@@ -29,7 +34,9 @@ class Syntax(val input : ParserInput) extends Parser {
     Parentheses | SingularConditionRule | NotRule
   }
   def Parentheses = rule { '(' ~ CombinatorialRule ~ ')' }
-  def NotRule = rule { '!' ~ (CombinatorialRule | Parentheses) ~> NotExpr }
+  def NotRule : Rule1[CombinatorialExpr] = rule {
+    '!' ~ (NotRule | SingularConditionRule | Parentheses) ~> NotExpr
+  }
 
   // Singular conditions.
   def SingularConditionRule = rule {
