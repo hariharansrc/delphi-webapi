@@ -3,6 +3,11 @@ package de.upb.cs.swt.delphi.querylanguage
 import org.scalatest.{FlatSpec, Matchers}
 import scala.util.{Failure, Success}
 
+/**
+  * Tests for the DelphiQL syntax.
+  *
+  * @author Lisa Nguyen Quang Do
+  */
 class SyntaxTest extends FlatSpec with Matchers {
 
   "Syntax.singularConditionWithOperator" should "be valid" in {

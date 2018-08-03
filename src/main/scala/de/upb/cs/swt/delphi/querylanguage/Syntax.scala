@@ -3,8 +3,11 @@ package de.upb.cs.swt.delphi.querylanguage
 import org.parboiled2.{CharPredicate, Parser, ParserInput, Rule1}
 
 /**
-  * Created by benhermann on 03.02.18.
-  * Author: Lisa Nguyen Quang Do 01.08.2018
+  * The syntax definition and parser for the Delphi QL.
+  *
+  * @author Lisa Nguyen Quang Do
+  * @author Ben Hermann
+  *
   */
 class Syntax(val input : ParserInput) extends Parser {
 
