@@ -117,21 +117,23 @@ class SyntaxTest extends FlatSpec with Matchers {
   }
 
   "Syntax.notConditionSimple" should "be valid" in {
-    val parseResult = new Syntax("Filter1&&!Filter2").QueryRule.run()
+    val parseResult = new Syntax("!Filter1&&!(Filter2)").QueryRule.run()
     parseResult shouldBe a [Success[_]]
     parseResult match {
       case Success(ast) => {
-        ast.toString shouldEqual "AndExpr(TrueExpr(Filter1),NotExpr(TrueExpr(Filter2)))"
+        ast.toString shouldEqual "AndExpr(NotExpr(TrueExpr(Filter1))," +
+          "NotExpr(TrueExpr(Filter2)))"
       }
     }
   }
 
   "Syntax.notConditionSimpleParentheses" should "be valid" in {
-    val parseResult = new Syntax("!(Filter1&&Filter2)").QueryRule.run()
+    val parseResult = new Syntax("!(Filter1&&!Filter2)").QueryRule.run()
     parseResult shouldBe a [Success[_]]
     parseResult match {
       case Success(ast) => {
-        ast.toString shouldEqual "NotExpr(AndExpr(TrueExpr(Filter1),TrueExpr(Filter2)))"
+        ast.toString shouldEqual "NotExpr(AndExpr(TrueExpr(Filter1)," +
+          "NotExpr(TrueExpr(Filter2))))"
       }
     }
   }

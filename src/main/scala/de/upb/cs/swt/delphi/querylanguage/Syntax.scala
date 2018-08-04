@@ -34,9 +34,7 @@ class Syntax(val input : ParserInput) extends Parser {
     Parentheses | SingularConditionRule | NotRule
   }
   def Parentheses = rule { '(' ~ CombinatorialRule ~ ')' }
-  def NotRule : Rule1[CombinatorialExpr] = rule {
-    '!' ~ (NotRule | SingularConditionRule | Parentheses) ~> NotExpr
-  }
+  def NotRule = rule { '!' ~ Factor ~> NotExpr }
 
   // Singular conditions.
   def SingularConditionRule = rule {
