@@ -3,84 +3,55 @@ package de.upb.cs.swt.delphi.querylanguage
 import org.parboiled2.{CharPredicate, Parser, ParserInput, Rule1}
 
 /**
-  * Created by benhermann on 03.02.18.
+  * The syntax definition and parser for the Delphi QL.
+  *
+  * @author Lisa Nguyen Quang Do
+  * @author Ben Hermann
+  *
   */
 class Syntax(val input : ParserInput) extends Parser {
 
   def QueryRule = rule {
-    QueryElementRule ~ EOI
+    CombinatorialRule ~ EOI
   }
 
-  def QueryElementRule = rule {
-    FeatureIdentifierRule ~  ConditionRule
+  // Combinatorial rules.
+  def CombinatorialRule : Rule1[CombinatorialExpr] = rule {
+    OrOrElseRule | NotRule
+  }
+  def OrOrElseRule = rule {
+    AndOrElseRule ~ zeroOrMore("||" ~ AndOrElseRule ~> OrExpr)
+  }
+  def AndOrElseRule = rule {
+    XorOrElseRule ~ zeroOrMore("&&" ~ XorOrElseRule ~> AndExpr)
+  }
+  def XorOrElseRule = rule {
+    Factor ~ zeroOrMore("%%" ~ Factor ~> XorExpr)
   }
 
-  def FeatureIdentifierRule = rule {
-    capture(oneOrMore(CharPredicate.Alpha))
+  // Handling parentheses.
+  def Factor : Rule1[CombinatorialExpr] = rule {
+    Parentheses | SingularConditionRule | NotRule
   }
+  def Parentheses = rule { '(' ~ CombinatorialRule ~ ')' }
+  def NotRule = rule { '!' ~ Factor ~> NotExpr }
 
-  def ConditionRule = rule {
-    SingularConditionRule // | ConjunctionRule | DisjunctionRule
-  }
-
+  // Singular conditions.
   def SingularConditionRule = rule {
-    EqualRule |
-    NotEqualRule |
-    GreaterThanRule |
-    GreaterOrEqual |
-    LessThan |
-    LessOrEqual |
-    Like
+    EqualRule | NotEqualRule | GreaterThanRule | GreaterOrEqual |
+      LessThan | LessOrEqual | Like | True
   }
+  def EqualRule = rule { Literal ~ "=" ~ Literal ~> EqualExpr }
+  def NotEqualRule = rule { Literal ~ "!=" ~ Literal ~> NotEqualExpr }
+  def GreaterThanRule = rule { Literal ~ ">" ~ Literal ~> GreaterThanExpr }
+  def GreaterOrEqual = rule { Literal ~ ">=" ~ Literal ~> GreaterOrEqualExpr }
+  def LessThan = rule { Literal ~ "<" ~ Literal ~> LessThanExpr }
+  def LessOrEqual = rule { Literal ~ "<=" ~ Literal ~> LessOrEqualExpr }
+  def Like = rule { Literal ~ "%" ~ Literal ~> LikeExpr }
+  def True = rule { Literal ~> TrueExpr }
 
-  /*
-  def ConjunctionRule = rule {
-    ConditionRule ~ "&&" ~ ConditionRule
-  }
-
-  def DisjunctionRule = rule {
-    ConditionRule ~ "||" ~ ConditionRule
-  }
-  */
-
-  def Literal = rule {
-    NumberLiteral |
-    StringLiteral
-  }
-
-  def StringLiteral = rule {
-    capture(oneOrMore(CharPredicate.AlphaNum))
-  }
-
-  def NumberLiteral = rule {
-    capture(oneOrMore(CharPredicate.Digit))
-  }
-
-  def EqualRule = rule {
-    "=" ~ Literal
-  }
-  def NotEqualRule = rule {
-    "!=" ~ NumberLiteral
-  }
-  def GreaterThanRule = rule {
-    ">" ~ NumberLiteral
-  }
-  def GreaterOrEqual = rule {
-    ">=" ~ NumberLiteral
-  }
-
-  def LessThan = rule {
-    "<" ~ NumberLiteral
-  }
-  def LessOrEqual = rule {
-    "=<" ~ NumberLiteral
-  }
-
-  def Like = rule {
-    "~" ~ StringLiteral
-  }
+  // Literals
+  def Literal = rule { capture(oneOrMore(CharPredicate.AlphaNum)) ~> (_.toString) }
 }
 
-class StringLiteral(value : String) {}
 
-class NumberLiteral(value : Integer) {}
