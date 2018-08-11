@@ -43,4 +43,4 @@ lazy val webapi = (project in file(".")).
     buildInfoPackage := "de.upb.cs.swt.delphi.webapi"
   )
 
-scalastyleConfig := baseDirectory.value / "project" / "scalastyle_config.xml"
+scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
