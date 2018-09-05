@@ -7,10 +7,17 @@ import akka.http.scaladsl.server.HttpApp
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
+import com.sksamuel.elastic4s.http.ElasticClient
+import com.sksamuel.elastic4s.http.ElasticDsl._
 import de.upb.cs.swt.delphi.featuredefinitions.FeatureListMapping
+import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
 import de.upb.cs.swt.delphi.webapi.ElasticActorManager.{Enqueue, Retrieve}
 import de.upb.cs.swt.delphi.webapi.ElasticRequestLimiter.Validate
 import spray.json._
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext}
+import scala.util.{Failure, Success}
 
 /**
   * Web server configuration for Delphi web API.
@@ -82,9 +89,28 @@ object Server extends HttpApp with JsonSupport with AppLogging {
   }
 
   def main(args: Array[String]): Unit = {
-    val configuration = new Configuration()
+
+      implicit val ec : ExecutionContext = system.dispatcher
+       lazy val client = ElasticClient(configuration.elasticsearchClientUri)
+
+      val f = (client.execute {
+        nodeInfo()
+      } map { i => {
+        if(configuration.usingInstanceRegistry) InstanceRegistry.sendMatchingResult(true, configuration)
+        Success(configuration)
+      }
+      } recover { case e => {
+        if(configuration.usingInstanceRegistry) InstanceRegistry.sendMatchingResult(false, configuration)
+        Failure(e)
+      }
+      }).andThen {
+        case _ => client.close()
+      }
+
+      Await.ready(f, Duration.Inf)
 
     Server.startServer(configuration.bindHost, configuration.bindPort)
+    InstanceRegistry.deregister(configuration)
     system.terminate()
   }
 

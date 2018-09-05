@@ -35,6 +35,13 @@ class Configuration(  //Server and Elasticsearch configuration
 
   val instanceName = "MyWebApiInstance"
   val instanceRegistryUri : String = sys.env.getOrElse("DELPHI_IR_URI", "http://localhost:8085")
-  lazy val usingInstanceRegistry = InstanceRegistry.register(this)
+  lazy val usingInstanceRegistry : Boolean = assignedID match {
+    case Some(_) => true
+    case None => false
+  }
+  lazy val assignedID : Option[Long] = InstanceRegistry.register(this) match {
+    case Success(id) => Some(id)
+    case Failure(_) => None
+  }
 
 }
