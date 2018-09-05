@@ -2,7 +2,8 @@ package de.upb.cs.swt.delphi.webapi
 
 import com.sksamuel.elastic4s.{ElasticsearchClientUri, IndexAndType}
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
+import de.upb.cs.swt.delphi.instancemanagement.InstanceEnums.ComponentType
+import de.upb.cs.swt.delphi.instancemanagement.{Instance, InstanceRegistry}
 
 import scala.util.{Failure, Success}
 
@@ -19,18 +20,21 @@ class Configuration(  //Server and Elasticsearch configuration
                    ) {
 
 
-  lazy val elasticsearchClientUri: ElasticsearchClientUri = ElasticsearchClientUri(InstanceRegistry.retrieveElasticSearchInstance(this) match {
-    case Success(elasticIP) => elasticIP
-    case Failure(_) => sys.env.getOrElse("DELPHI_ELASTIC_URI","elasticsearch://localhost:9200")
+  lazy val elasticsearchClientUri: ElasticsearchClientUri = ElasticsearchClientUri({
+    if(elasticsearchInstance.portnumber.isEmpty){
+      elasticsearchInstance.iP.get
+    }else{
+      elasticsearchInstance.iP.get + ":" + elasticsearchInstance.portnumber.get
+    }
   })
 
-  val instanceRegistryUri : String = sys.env.getOrElse("DELPHI_IR_URI", "http://localhost:9300")
-
-  lazy val usingInstanceRegistry = InstanceRegistry.register("MyWebApiInstance",this) match {
-    case Success(_) => true
-    case Failure(_) => {
-      println(s"Failed to connect to Instance Registry at ${instanceRegistryUri}. Using default configuration instead.")
-      false
-    }
+  lazy val elasticsearchInstance : Instance = InstanceRegistry.retrieveElasticSearchInstance(this) match {
+    case Success(instance) => instance
+    case Failure(_) => Instance(None, Some(sys.env.getOrElse("DELPHI_ELASTIC_URI","elasticsearch://localhost:9200")), None, Some("Default ElasticSearch instance"), Some(ComponentType.ElasticSearch) )
   }
+
+  val instanceName = "MyWebApiInstance"
+  val instanceRegistryUri : String = sys.env.getOrElse("DELPHI_IR_URI", "http://localhost:8085")
+  lazy val usingInstanceRegistry = InstanceRegistry.register(this)
+
 }
