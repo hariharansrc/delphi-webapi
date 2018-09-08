@@ -22,9 +22,9 @@ class Configuration(  //Server and Elasticsearch configuration
 
   lazy val elasticsearchClientUri: ElasticsearchClientUri = ElasticsearchClientUri({
     if(elasticsearchInstance.portnumber.isEmpty){
-      elasticsearchInstance.iP.get
+      elasticsearchInstance.iP.getOrElse("elasticsearch://localhost:9200")
     }else{
-      elasticsearchInstance.iP.get + ":" + elasticsearchInstance.portnumber.get
+      elasticsearchInstance.iP.getOrElse("elasticsearch://localhost") + ":" + elasticsearchInstance.portnumber.getOrElse("9200")
     }
   })
 
