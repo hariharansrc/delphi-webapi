@@ -2,24 +2,25 @@ package de.upb.cs.swt.delphi.instancemanagement
 
 import java.net.InetAddress
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.stream.ActorMaterializer
 import de.upb.cs.swt.delphi.instancemanagement.InstanceEnums.ComponentType
 import de.upb.cs.swt.delphi.webapi.{AppLogging, Configuration, Server}
 
-
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
 object InstanceRegistry extends JsonSupport with AppLogging
 {
 
- implicit val system = Server.system
-  implicit val ec = system.dispatcher
-  implicit val materializer = Server.materializer
+  implicit val system : ActorSystem = Server.system
+  implicit val ec  : ExecutionContext = system.dispatcher
+  implicit val materializer : ActorMaterializer = Server.materializer
 
 
   def register(configuration: Configuration) : Try[Long] = {
@@ -59,8 +60,8 @@ object InstanceRegistry extends JsonSupport with AppLogging
         if(status == StatusCodes.OK) {
 
           Await.result(Unmarshal(response.entity).to[Instance] map {instance =>
-            val elasticIP = instance.iP
-            log.info(s"Instance Registry assigned ElasticSearch instance at ${elasticIP.getOrElse("None")}")
+            val elasticIP = instance.host
+            log.info(s"Instance Registry assigned ElasticSearch instance at $elasticIP")
             Success(instance)
           } recover {case ex =>
             log.warning(s"Failed to read response from Instance Registry, exception: $ex")
@@ -85,10 +86,10 @@ object InstanceRegistry extends JsonSupport with AppLogging
       if(configuration.elasticsearchInstance.iD.isEmpty) {
         Failure(new RuntimeException("Cannot post matching result to Instance Registry, assigned ElasticSearch instance has no ID."))
       } else {
-        val IdToPost = configuration.elasticsearchInstance.iD.get
+        val idToPost = configuration.elasticsearchInstance.iD.getOrElse(-1L)
         val request = HttpRequest(
           method = HttpMethods.POST,
-          configuration.instanceRegistryUri + s"/matchingResult?Id=$IdToPost&MatchingSuccessful=$isElasticSearchReachable")
+          configuration.instanceRegistryUri + s"/matchingResult?Id=$idToPost&MatchingSuccessful=$isElasticSearchReachable")
 
         Await.result(Http(system).singleRequest(request) map {response =>
           if(response.status == StatusCodes.OK){
@@ -114,7 +115,7 @@ object InstanceRegistry extends JsonSupport with AppLogging
     if(!configuration.usingInstanceRegistry){
       Failure(new RuntimeException("Cannot deregister from Instance Registry, no Instance Registry available."))
     } else {
-      val id : Long = configuration.assignedID.get
+      val id : Long = configuration.assignedID.getOrElse(-1L)
 
       val request = HttpRequest(method = HttpMethods.POST, configuration.instanceRegistryUri + s"/deregister?Id=$id")
 
@@ -144,5 +145,5 @@ object InstanceRegistry extends JsonSupport with AppLogging
 
 
   private def createInstance(id: Option[Long], controlPort : Int, name : String) : Instance =
-    Instance(id, Option(InetAddress.getLocalHost.getHostAddress), Option(controlPort), Option(name), Option(ComponentType.Crawler))
+    Instance(id, InetAddress.getLocalHost.getHostAddress, controlPort, name, ComponentType.WebApi)
 }
