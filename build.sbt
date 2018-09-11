@@ -32,6 +32,7 @@ libraryDependencies ++= Seq(
 lazy val webapi = (project in file(".")).
   enablePlugins(JavaAppPackaging).
   enablePlugins(DockerPlugin).
+  enablePlugins(ScalastylePlugin).
   settings (
     dockerBaseImage := "openjdk:jre-alpine"
   ).
@@ -42,4 +43,4 @@ lazy val webapi = (project in file(".")).
     buildInfoPackage := "de.upb.cs.swt.delphi.webapi"
   )
 
-scalastyleConfig := baseDirectory.value / "project" / "scalastyle_config.xml"
+scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
