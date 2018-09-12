@@ -1,7 +1,7 @@
 package de.upb.cs.swt.delphi.webapi
 
-import com.sksamuel.elastic4s.{ElasticsearchClientUri, IndexAndType}
 import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.{ElasticsearchClientUri, IndexAndType}
 import de.upb.cs.swt.delphi.instancemanagement.InstanceEnums.ComponentType
 import de.upb.cs.swt.delphi.instancemanagement.{Instance, InstanceRegistry}
 
@@ -21,7 +21,7 @@ class Configuration(  //Server and Elasticsearch configuration
 
 
   lazy val elasticsearchClientUri: ElasticsearchClientUri = ElasticsearchClientUri(
-    elasticsearchInstance.host + ":" + elasticsearchInstance.portnumber)
+    elasticsearchInstance.host + ":" + elasticsearchInstance.portNumber)
 
   lazy val elasticsearchInstance : Instance = InstanceRegistry.retrieveElasticSearchInstance(this) match {
     case Success(instance) => instance

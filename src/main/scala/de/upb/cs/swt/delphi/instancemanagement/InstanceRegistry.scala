@@ -61,7 +61,7 @@ object InstanceRegistry extends JsonSupport with AppLogging
 
           Await.result(Unmarshal(response.entity).to[Instance] map {instance =>
             val elasticIP = instance.host
-            log.info(s"Instance Registry assigned ElasticSearch instance at $elasticIP")
+            log.info(s"Instance Registry assigned ElasticSearch instance at $elasticIP ")
             Success(instance)
           } recover {case ex =>
             log.warning(s"Failed to read response from Instance Registry, exception: $ex")
@@ -80,20 +80,23 @@ object InstanceRegistry extends JsonSupport with AppLogging
   }
 
   def sendMatchingResult(isElasticSearchReachable : Boolean, configuration: Configuration) : Try[Unit] = {
+    val id=configuration.elasticsearchInstance.id.get
+
     if(!configuration.usingInstanceRegistry) {
       Failure(new RuntimeException("Cannot post matching result to Instance Registry, no Instance Registry available."))
     } else {
-      if(configuration.elasticsearchInstance.iD.isEmpty) {
+      if(configuration.elasticsearchInstance.id.isEmpty) {
         Failure(new RuntimeException("Cannot post matching result to Instance Registry, assigned ElasticSearch instance has no ID."))
       } else {
-        val idToPost = configuration.elasticsearchInstance.iD.getOrElse(-1L)
+        val idToPost = configuration.elasticsearchInstance.id.getOrElse(-1L)
         val request = HttpRequest(
           method = HttpMethods.POST,
           configuration.instanceRegistryUri + s"/matchingResult?Id=$idToPost&MatchingSuccessful=$isElasticSearchReachable")
 
         Await.result(Http(system).singleRequest(request) map {response =>
+          val  status=response.status
           if(response.status == StatusCodes.OK){
-            log.info("Successfully posted matching result to Instance Registry.")
+            log.info(s"Successfully posted matching result to Instance Registry.")
             Success()
           }
           else {
