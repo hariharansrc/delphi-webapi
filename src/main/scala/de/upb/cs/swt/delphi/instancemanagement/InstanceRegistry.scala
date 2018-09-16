@@ -80,7 +80,6 @@ object InstanceRegistry extends JsonSupport with AppLogging
   }
 
   def sendMatchingResult(isElasticSearchReachable : Boolean, configuration: Configuration) : Try[Unit] = {
-    val id=configuration.elasticsearchInstance.id.get
 
     if(!configuration.usingInstanceRegistry) {
       Failure(new RuntimeException("Cannot post matching result to Instance Registry, no Instance Registry available."))
