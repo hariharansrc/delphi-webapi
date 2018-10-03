@@ -66,7 +66,6 @@ class Configuration(  //Server and Elasticsearch configuration
     case None => defaultElasticSearchHost
 
   }
-
 }
 
 

@@ -61,12 +61,15 @@ object InstanceRegistry extends JsonSupport with AppLogging
 
           Await.result(Unmarshal(response.entity).to[Instance] map {instance =>
             val elasticIP = instance.host
-            log.info(s"Instance Registry assigned ElasticSearch instance at $elasticIP ")
+            log.info(s"Instance Registry assigned ElasticSearch instance at $elasticIP $status")
             Success(instance)
           } recover {case ex =>
             log.warning(s"Failed to read response from Instance Registry, exception: $ex")
             Failure(ex)
           }, Duration.Inf)
+        } else if ( status == StatusCodes.NotFound) {
+          log.warning(s"No matching instance of ElasticSearch is present at the instance registry.")
+          Failure(new RuntimeException(s"Instance Registry did not contain matching instance, server returned $status"))
         }
         else{
           log.warning(s"Failed to read response from Instance Registry, server returned $status")
@@ -80,8 +83,6 @@ object InstanceRegistry extends JsonSupport with AppLogging
   }
 
   def sendMatchingResult(isElasticSearchReachable : Boolean, configuration: Configuration) : Try[Unit] = {
-    val id=configuration.elasticsearchInstance.id.get
-
     if(!configuration.usingInstanceRegistry) {
       Failure(new RuntimeException("Cannot post matching result to Instance Registry, no Instance Registry available."))
     } else {

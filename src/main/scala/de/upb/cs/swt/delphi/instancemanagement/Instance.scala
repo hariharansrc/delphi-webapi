@@ -27,7 +27,6 @@ final case class Instance (
                             host: String,
                             portNumber: Int,
                             name: String,
-                            /* Component Type */
                             componentType: InstanceEnums.ComponentType
                           )
 
