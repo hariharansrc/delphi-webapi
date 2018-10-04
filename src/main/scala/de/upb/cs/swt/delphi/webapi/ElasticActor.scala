@@ -1,5 +1,4 @@
 package de.upb.cs.swt.delphi.webapi
-
 import akka.actor.{Actor, ActorLogging, Props}
 import com.sksamuel.elastic4s.IndexAndType
 import com.sksamuel.elastic4s.http.{ElasticClient, RequestFailure, RequestSuccess}
@@ -29,7 +28,6 @@ class ElasticActor(configuration: Configuration, index: IndexAndType) extends Ac
   private def getSource(id: String) = {
     log.info("Executing get on entry {}", id)
     val searchByName = searchWithType(index) query must(
-      // matchQuery("name", s"http://repo1.maven.org/maven2/:$id")
       matchQuery("name", id)
     )
     log.info(s"Query {}",client.show(searchByName))
