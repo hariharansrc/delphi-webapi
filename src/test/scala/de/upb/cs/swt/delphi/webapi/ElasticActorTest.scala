@@ -23,9 +23,8 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import com.sksamuel.elastic4s.RefreshPolicy
-import com.sksamuel.elastic4s.embedded.LocalNode
+import com.sksamuel.elastic4s.http.ElasticClient
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import org.elasticsearch.common.settings.Settings
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
 import scala.concurrent.duration._
@@ -39,35 +38,26 @@ class ElasticActorTest extends FlatSpec with Matchers with BeforeAndAfterAll {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()(system)
   implicit val executionContext = system.dispatcher
-  val node = LocalNode("elasticsearch","local-path")
-  val client = node.client(shutdownNodeOnClose = true)
+  val configuration = new Configuration()
+  val client = ElasticClient(configuration.elasticsearchClientUri)
 
   override def beforeAll(): Unit = {
     client.execute {
-      createIndex("delphi").mappings(
-        mapping("project").fields(
-          keywordField("name"),
-          keywordField("source"),
-          keywordField("identifier.groupId"),
-          keywordField("identifier.artifactId"),
-          keywordField("identifier.version")
-        )
-      )
-    }.await
-
-    client.execute {
       indexInto("delphi" / "project").fields(
-        "name" -> "yom:yom:1.0-alpha-2"
+        "name" -> "test:elastic-actor-test:1.0"
       ).refresh(RefreshPolicy.IMMEDIATE)
     }.await
   }
 
-  override def afterAll(): Unit = {
-    super.afterAll()
-    client.close()
-    system.terminate();
-  }
 
+  override def afterAll(): Unit = {
+    client.execute {
+      deleteByQuery("delphi", "project", matchQuery("name", "test:elastic-actor-test:1.0"))
+    }.await
+    client.close()
+    system.terminate()
+
+  }
 
 
   "Version no.." should
@@ -90,24 +80,32 @@ class ElasticActorTest extends FlatSpec with Matchers with BeforeAndAfterAll {
         assertThrows(e);
       }
     }
-    Await.result(res, 5.seconds)
+    Await.result(res, 2.seconds)
   }
 
   "Retrive endpoint" should
-    "get yom:yom:1.0-alpha-2 artifact" in {
-    val mavenId = "yom:yom:1.0-alpha-2"
+  "get test:elastic-actor-test:1.0 artifact" in {
+    val mavenId = "test:elastic-actor-test:1.0"
     val url = s"http://localhost:8080/retrieve/${mavenId}"
     val res: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = url))
     res.onComplete {
       case Success(data) => {
         assert(data.status.isSuccess())
         val res2Str: Future[String] = Unmarshal(data.entity).to[String]
-        println(res2Str)
+        res2Str.onComplete {
+          case Success(value) => {
+            assert(value.contains(mavenId))
+          }
+          case Failure(e) => {
+            assertThrows(e);
+          }
+        }
       }
       case Failure(exception) => {
         assertThrows(exception)
       }
     }
+    Await.result(res, 2.seconds)
   }
 
 }
