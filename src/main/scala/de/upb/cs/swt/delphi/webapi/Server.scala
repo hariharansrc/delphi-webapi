@@ -9,8 +9,6 @@ import akka.http.scaladsl.server.HttpApp
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import com.sksamuel.elastic4s.http.ElasticClient
-import com.sksamuel.elastic4s.http.ElasticDsl._
 import de.upb.cs.swt.delphi.featuredefinitions.FeatureListMapping
 import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
 import de.upb.cs.swt.delphi.webapi.ElasticActorManager.{Enqueue, Retrieve}
@@ -33,13 +31,16 @@ object Server extends HttpApp with JsonSupport with AppLogging {
   implicit val timeout = Timeout(5, TimeUnit.SECONDS)
   implicit val materializer = ActorMaterializer()
 
-
   override def routes =
-      path("version") { version } ~
-        path("features") { features } ~
-        pathPrefix("search" / Remaining) { query => search(query) } ~
-        pathPrefix("retrieve" / Remaining) { identifier => retrieve(identifier) } ~
-        pathPrefix("enqueue" / Remaining) { identifier => enqueue(identifier) }
+    path("version") {
+      version
+    } ~
+      path("features") {
+        features
+      } ~
+      pathPrefix("search" / Remaining) { query => search(query) } ~
+      pathPrefix("retrieve" / Remaining) { identifier => retrieve(identifier) } ~
+      pathPrefix("enqueue" / Remaining) { identifier => enqueue(identifier) }
 
 
   private def version = {
@@ -60,11 +61,11 @@ object Server extends HttpApp with JsonSupport with AppLogging {
 
   def retrieve(identifier: String) = {
     get {
-      pass {    //TODO: Require authentication here
+      pass { //TODO: Require authentication here
         complete(
           (actorManager ? Retrieve(identifier)).mapTo[String]
         )
-      } ~ extractClientIP{ ip =>
+      } ~ extractClientIP { ip =>
         complete(
           (requestLimiter ? Validate(ip, Retrieve(identifier))).mapTo[String]
         )
@@ -74,7 +75,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
 
   def enqueue(identifier: String) = {
     get {
-      pass {    //TODO: Require authorization here
+      pass { //TODO: Require authorization here
         complete(
           (actorManager ? Enqueue(identifier)).mapTo[String]
         )
@@ -91,26 +92,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
   }
 
   def main(args: Array[String]): Unit = {
-
-      implicit val ec : ExecutionContext = system.dispatcher
-       lazy val client = ElasticClient(configuration.elasticsearchClientUri)
-
-      val f = (client.execute {
-        nodeInfo()
-      } map { i => {
-        if(configuration.usingInstanceRegistry) InstanceRegistry.sendMatchingResult(true, configuration)
-        Success(configuration)
-      }
-      } recover { case e => {
-        if(configuration.usingInstanceRegistry) InstanceRegistry.sendMatchingResult(false, configuration)
-        Failure(e)
-      }
-      }).andThen {
-        case _ => client.close()
-      }
-
-      Await.ready(f, Duration.Inf)
-
+    StartupCheck.check(configuration)
     Server.startServer(configuration.bindHost, configuration.bindPort)
     InstanceRegistry.handleInstanceStop(configuration)
     system.terminate()
