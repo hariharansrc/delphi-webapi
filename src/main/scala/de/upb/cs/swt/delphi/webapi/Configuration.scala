@@ -57,10 +57,8 @@ class Configuration(  //Server and Elasticsearch configuration
     case Some(_) => true
     case None => false
   }
-  lazy val assignedID : Option[Long] = InstanceRegistry.register(configuration = this) match {
-    case Success(id) => Some(id)
-    case Failure(_) => None
-  }
+  lazy val assignedID : Option[Long] = InstanceRegistry.handleInstanceStart(configuration = this)
+
   lazy val fallbackElasticSearchPort : Int = sys.env.get("DELPHI_ELASTIC_URI") match {
     case Some(hostString) => if(hostString.count(c => c == ':') == 3){
       Try(hostString.split(":")(2).toInt) match {
