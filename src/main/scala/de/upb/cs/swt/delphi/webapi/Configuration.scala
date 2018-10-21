@@ -1,8 +1,23 @@
+// Copyright (C) 2018 The Delphi Team.
+// See the LICENCE file distributed with this work for additional
+// information regarding copyright ownership.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package de.upb.cs.swt.delphi.webapi
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.{ElasticsearchClientUri, IndexAndType}
-import de.upb.cs.swt.delphi.instancemanagement.InstanceEnums.ComponentType
+import de.upb.cs.swt.delphi.instancemanagement.InstanceEnums.{ComponentType, InstanceState}
 import de.upb.cs.swt.delphi.instancemanagement.{Instance, InstanceRegistry}
 
 import scala.util.{Failure, Success, Try}
@@ -23,14 +38,16 @@ class Configuration(  //Server and Elasticsearch configuration
   lazy val elasticsearchClientUri: ElasticsearchClientUri = ElasticsearchClientUri(
     elasticsearchInstance.host + ":" + elasticsearchInstance.portNumber)
 
-  lazy val elasticsearchInstance : Instance = InstanceRegistry.retrieveElasticSearchInstance(this) match {
+  lazy val elasticsearchInstance : Instance = InstanceRegistry.retrieveElasticSearchInstance( configuration = this) match {
     case Success(instance) => instance
     case Failure(_) => Instance(
       None,
       fallbackElasticSearchHost,
       fallbackElasticSearchPort,
       "Default ElasticSearch instance",
-      ComponentType.ElasticSearch)
+      ComponentType.ElasticSearch,
+      None,
+      InstanceState.Running)
   }
   val defaultElasticSearchPort : Int = 9200
   val defaultElasticSearchHost : String = "elasticsearch://localhost"
@@ -40,10 +57,8 @@ class Configuration(  //Server and Elasticsearch configuration
     case Some(_) => true
     case None => false
   }
-  lazy val assignedID : Option[Long] = InstanceRegistry.register(this) match {
-    case Success(id) => Some(id)
-    case Failure(_) => None
-  }
+  lazy val assignedID : Option[Long] = InstanceRegistry.handleInstanceStart(configuration = this)
+
   lazy val fallbackElasticSearchPort : Int = sys.env.get("DELPHI_ELASTIC_URI") match {
     case Some(hostString) => if(hostString.count(c => c == ':') == 3){
       Try(hostString.split(":")(2).toInt) match {
@@ -66,6 +81,8 @@ class Configuration(  //Server and Elasticsearch configuration
     case None => defaultElasticSearchHost
 
   }
+  lazy val instanceId : Option[Long] = InstanceRegistry.handleInstanceStart(configuration = this)
+
 }
 
 

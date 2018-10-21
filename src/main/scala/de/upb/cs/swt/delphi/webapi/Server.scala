@@ -2,7 +2,9 @@ package de.upb.cs.swt.delphi.webapi
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.ActorSystem
+import akka.Done
+import akka.actor.{ActorSystem, PoisonPill}
+import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.HttpApp
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
@@ -12,6 +14,10 @@ import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
 import de.upb.cs.swt.delphi.webapi.ElasticActorManager.{Enqueue, Retrieve}
 import de.upb.cs.swt.delphi.webapi.ElasticRequestLimiter.Validate
 import spray.json._
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext}
+import scala.util.{Failure, Success, Try}
 
 /**
   * Web server configuration for Delphi web API.
@@ -88,7 +94,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
   def main(args: Array[String]): Unit = {
     StartupCheck.check(configuration)
     Server.startServer(configuration.bindHost, configuration.bindPort)
-    InstanceRegistry.deregister(configuration)
+    InstanceRegistry.handleInstanceStop(configuration)
     system.terminate()
   }
 
