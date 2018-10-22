@@ -51,3 +51,9 @@ configs(IntegrationTest).
   )
 
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
+
+// Pinning secure versions of insecure transitive libraryDependencies
+// Please update when updating dependencies above (including Play plugin)
+libraryDependencies ++= Seq(
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.7"
+)
