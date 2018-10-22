@@ -17,14 +17,13 @@
 package de.upb.cs.swt.delphi.webapi
 
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import akka.actor.Timers
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
 import akka.http.scaladsl.model.RemoteAddress
-import de.upb.cs.swt.delphi.webapi.ElasticRequestLimiter._
 import de.upb.cs.swt.delphi.webapi.ElasticActorManager.ElasticMessage
+import de.upb.cs.swt.delphi.webapi.ElasticRequestLimiter._
 
-import scala.concurrent.duration._
 import scala.collection.mutable
+import scala.concurrent.duration._
 
 //Limits the number of requests any given IP can make by tracking how many requests an IP has made within a given
 //  window of time, and timing out any IP that exceeds a threshold by rejecting any further request for a period of time
