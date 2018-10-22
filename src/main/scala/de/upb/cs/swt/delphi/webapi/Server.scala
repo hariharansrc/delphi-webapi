@@ -19,7 +19,7 @@ package de.upb.cs.swt.delphi.webapi
 import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.server.HttpApp
+import akka.http.scaladsl.server.{HttpApp, Route}
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
@@ -28,6 +28,9 @@ import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
 import de.upb.cs.swt.delphi.webapi.ElasticActorManager.{Enqueue, Retrieve}
 import de.upb.cs.swt.delphi.webapi.ElasticRequestLimiter.Validate
 import spray.json._
+
+import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.duration._
 
 /**
   * Web server configuration for Delphi web API.
@@ -41,7 +44,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
   implicit val timeout = Timeout(5, TimeUnit.SECONDS)
   implicit val materializer = ActorMaterializer()
 
-  override def routes =
+  override def routes: Route =
     path("version") {
       version
     } ~
@@ -69,7 +72,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
     }
   }
 
-  def retrieve(identifier: String) = {
+  def retrieve(identifier: String): Route = {
     get {
       pass { //TODO: Require authentication here
         complete(
@@ -83,7 +86,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
     }
   }
 
-  def enqueue(identifier: String) = {
+  def enqueue(identifier: String): Route = {
     get {
       pass { //TODO: Require authorization here
         complete(
@@ -93,7 +96,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
     }
   }
 
-  def search(query: String) = {
+  def search(query: String): Route = {
     get {
       complete {
         query
@@ -102,10 +105,20 @@ object Server extends HttpApp with JsonSupport with AppLogging {
   }
 
   def main(args: Array[String]): Unit = {
+    sys.addShutdownHook({
+      log.warning("Received shutdown signal.")
+      InstanceRegistry.handleInstanceStop(configuration)
+    })
+
     StartupCheck.check(configuration)
-    Server.startServer(configuration.bindHost, configuration.bindPort)
-    InstanceRegistry.handleInstanceStop(configuration)
-    system.terminate()
+    Server.startServer(configuration.bindHost, configuration.bindPort, system)
+
+    implicit val ec : ExecutionContext = ExecutionContext.global
+    val terminationFuture = system.terminate()
+
+    terminationFuture.onComplete {
+      sys.exit()
+    }
   }
 
 
