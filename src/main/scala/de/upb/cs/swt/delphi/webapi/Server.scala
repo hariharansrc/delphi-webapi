@@ -45,15 +45,13 @@ object Server extends HttpApp with JsonSupport with AppLogging {
   implicit val materializer = ActorMaterializer()
 
   override def routes: Route =
-    path("version") {
-      version
-    } ~
-      path("features") {
-        features
-      } ~
+    path("version") { version } ~
+      path("features") { features } ~
+      path("statistics") { statistics } ~
       pathPrefix("search" / Remaining) { query => search(query) } ~
-      pathPrefix("retrieve" / Remaining) { identifier => retrieve(identifier) } ~
-      pathPrefix("enqueue" / Remaining) { identifier => enqueue(identifier) }
+      pathPrefix("retrieve" / Remaining) { identifier => retrieve(identifier) }
+      //~
+      //pathPrefix("enqueue" / Remaining) { identifier => enqueue(identifier) }
 
 
   private def version = {
@@ -72,9 +70,18 @@ object Server extends HttpApp with JsonSupport with AppLogging {
     }
   }
 
-  def retrieve(identifier: String): Route = {
+  private def statistics = {
     get {
-      pass { //TODO: Require authentication here
+      complete {
+        import StatisticsJson._
+        new StatisticsQuery(configuration).retrieveStandardStatistics.toJson
+      }
+    }
+  }
+
+  private def retrieve(identifier: String): Route = {
+    get {
+      pass {
         complete(
           (actorManager ? Retrieve(identifier)).mapTo[String]
         )
@@ -113,14 +120,13 @@ object Server extends HttpApp with JsonSupport with AppLogging {
     StartupCheck.check(configuration)
     Server.startServer(configuration.bindHost, configuration.bindPort, system)
 
-    implicit val ec : ExecutionContext = ExecutionContext.global
+    implicit val ec: ExecutionContext = ExecutionContext.global
     val terminationFuture = system.terminate()
 
     terminationFuture.onComplete {
       sys.exit()
     }
   }
-
 
 
 }

@@ -17,7 +17,7 @@
 package de.upb.cs.swt.delphi.webapi
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.{ElasticsearchClientUri, IndexAndType}
+import com.sksamuel.elastic4s.{ElasticsearchClientUri, Index, IndexAndType}
 import de.upb.cs.swt.delphi.instancemanagement.InstanceEnums.{ComponentType, InstanceState}
 import de.upb.cs.swt.delphi.instancemanagement.{Instance, InstanceRegistry}
 
@@ -29,13 +29,14 @@ import scala.util.{Failure, Success, Try}
 class Configuration(  //Server and Elasticsearch configuration
                     val bindHost: String = "0.0.0.0",
                     val bindPort: Int = 8080,
-                    val esProjectIndex: IndexAndType = "delphi" / "project",
+                      val esIndex : String = "delphi",
+                      val esType : String = "project",
 
                       //Actor system configuration
                     val elasticActorPoolSize: Int = 8
                    ) {
 
-
+  lazy val esProjectIndex: IndexAndType = esIndex / esType
   lazy val elasticsearchClientUri: ElasticsearchClientUri = ElasticsearchClientUri(
     elasticsearchInstance.host + ":" + elasticsearchInstance.portNumber)
 
