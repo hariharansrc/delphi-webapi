@@ -19,6 +19,7 @@ package de.upb.cs.swt.delphi.webapi
 import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.{HttpApp, Route}
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
@@ -28,9 +29,8 @@ import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
 import de.upb.cs.swt.delphi.webapi.ElasticActorManager.{Enqueue, Retrieve}
 import de.upb.cs.swt.delphi.webapi.ElasticRequestLimiter.Validate
 import spray.json._
+import scala.concurrent.ExecutionContext
 
-import scala.concurrent.{Await, ExecutionContext}
-import scala.concurrent.duration._
 
 /**
   * Web server configuration for Delphi web API.
@@ -43,17 +43,15 @@ object Server extends HttpApp with JsonSupport with AppLogging {
   private val requestLimiter = system.actorOf(ElasticRequestLimiter.props(configuration, actorManager))
   implicit val timeout = Timeout(5, TimeUnit.SECONDS)
   implicit val materializer = ActorMaterializer()
+  implicit val ec=system.dispatcher
 
   override def routes: Route =
-    path("version") {
-      version
-    } ~
-      path("features") {
-        features
-      } ~
+    path("version") {version} ~
+      path("features") {features } ~
       pathPrefix("search" / Remaining) { query => search(query) } ~
       pathPrefix("retrieve" / Remaining) { identifier => retrieve(identifier) } ~
-      pathPrefix("enqueue" / Remaining) { identifier => enqueue(identifier) }
+      pathPrefix("enqueue" / Remaining) { identifier => enqueue(identifier) } ~
+      path("stop") {stop}
 
 
   private def version = {
@@ -103,6 +101,15 @@ object Server extends HttpApp with JsonSupport with AppLogging {
       }
     }
   }
+  private def stop = {
+    post {
+      Http(system)shutdownAllConnectionPools() andThen { case _ => system.terminate()
+        log(system).info("Shutting Down WebAPI")
+        System.exit(0)
+      }
+      complete("WebApi ShutDown")
+    }
+  }
 
   def main(args: Array[String]): Unit = {
     sys.addShutdownHook({
@@ -120,9 +127,6 @@ object Server extends HttpApp with JsonSupport with AppLogging {
       sys.exit()
     }
   }
-
-
-
 }
 
 
