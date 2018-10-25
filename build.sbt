@@ -16,7 +16,7 @@ libraryDependencies += "io.spray" %% "spray-json" % "1.3.3"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "it,test"
 libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.11.1"
-libraryDependencies += "com.typesafe.akka" %% "akka-http-testkit" % "10.0.0"
+libraryDependencies += "com.typesafe.akka" %% "akka-http-testkit" % "10.1.5"
 
 val elastic4sVersion = "6.3.0"
 libraryDependencies ++= Seq(
