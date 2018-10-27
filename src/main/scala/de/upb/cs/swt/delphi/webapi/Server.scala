@@ -26,9 +26,10 @@ import akka.util.Timeout
 import de.upb.cs.swt.delphi.featuredefinitions.{FeatureExtractor, FeatureListMapping}
 import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
 import spray.json._
-import ArtifactJson._
+import de.upb.cs.swt.delphi.webapi.artifacts.ArtifactJson._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 /**
   * Web server configuration for Delphi web API.
@@ -52,7 +53,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
       path("statistics") {
         statistics
       } ~
-      pathPrefix("search" / Remaining) { query => search(query) } ~
+      pathPrefix("search" ) { search } ~
       pathPrefix("retrieve" / Remaining) { identifier => retrieve(identifier) }
 
 
@@ -70,6 +71,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
     get {
       parameter('pretty.?) { (pretty) =>
         complete(
+          //TODO: Introduce failure concept for feature extractor
           prettyPrint(pretty, featureExtractor.featureList.toJson)
         )
       }
@@ -98,7 +100,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
       parameter('pretty.?) { (pretty) =>
         complete(
           RetrieveQuery.retrieve(identifier) match {
-            case Some(result: Any) => prettyPrint(pretty, result.toJson)
+            case Some(result) => prettyPrint(pretty, result.toJson)
             case None => HttpResponse(StatusCodes.NotFound)
           }
         )
@@ -106,10 +108,19 @@ object Server extends HttpApp with JsonSupport with AppLogging {
     }
   }
 
-  def search(query: String): Route = {
-    get {
-      complete {
-        query
+  def search: Route = {
+    post {
+      parameter('pretty.?) { (pretty) =>
+        entity(as[JsValue]) { input =>
+          val query = input.asJsObject.fields("query").convertTo[String]
+          log.info(s"Received search query: $query")
+          complete(
+            new SearchQuery(configuration, featureExtractor).search(query) match {
+              case Success(result) => prettyPrint(pretty, result.toJson)
+              case Failure(e) => e.toString
+            }
+          )
+        }
       }
     }
   }

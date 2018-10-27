@@ -24,7 +24,7 @@ import akka.stream.ActorMaterializer
 import com.sksamuel.elastic4s.RefreshPolicy
 import com.sksamuel.elastic4s.http.ElasticClient
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, Ignore, Matchers}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -33,6 +33,7 @@ import scala.util.{Failure, Success}
 /**
   * @author Hariharan.
   */
+@Ignore
 class ElasticActorTest extends FlatSpec with Matchers with BeforeAndAfterAll {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()(system)

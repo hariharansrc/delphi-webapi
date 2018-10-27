@@ -55,18 +55,19 @@ class Syntax(val input : ParserInput) extends Parser {
   // Singular conditions.
   def SingularConditionRule = rule {
     EqualRule | NotEqualRule | GreaterThanRule | GreaterOrEqual |
-      LessThan | LessOrEqual | Like | True
+      LessThan | LessOrEqual | Like | IsTrue
   }
-  def EqualRule = rule { Literal ~ "=" ~ Literal ~> EqualExpr }
-  def NotEqualRule = rule { Literal ~ "!=" ~ Literal ~> NotEqualExpr }
-  def GreaterThanRule = rule { Literal ~ ">" ~ Literal ~> GreaterThanExpr }
-  def GreaterOrEqual = rule { Literal ~ ">=" ~ Literal ~> GreaterOrEqualExpr }
-  def LessThan = rule { Literal ~ "<" ~ Literal ~> LessThanExpr }
-  def LessOrEqual = rule { Literal ~ "<=" ~ Literal ~> LessOrEqualExpr }
-  def Like = rule { Literal ~ "%" ~ Literal ~> LikeExpr }
-  def True = rule { Literal ~> TrueExpr }
+  def EqualRule = rule { FieldReferenceRule ~ "=" ~ Literal ~> EqualExpr }
+  def NotEqualRule = rule { FieldReferenceRule ~ "!=" ~ Literal ~> NotEqualExpr }
+  def GreaterThanRule = rule { FieldReferenceRule ~ ">" ~ Literal ~> GreaterThanExpr }
+  def GreaterOrEqual = rule { FieldReferenceRule ~ ">=" ~ Literal ~> GreaterOrEqualExpr }
+  def LessThan = rule { FieldReferenceRule ~ "<" ~ Literal ~> LessThanExpr }
+  def LessOrEqual = rule { FieldReferenceRule ~ "<=" ~ Literal ~> LessOrEqualExpr }
+  def Like = rule { FieldReferenceRule ~ "%" ~ Literal ~> LikeExpr }
+  def IsTrue = rule { FieldReferenceRule ~> IsTrueExpr }
 
   // Literals
+  def FieldReferenceRule = rule { "[" ~ capture(oneOrMore(CharPredicate.AlphaNum ++ ' ' ++  '_' ++ '(' ++ ':' ++')')) ~ "]"  ~> FieldReference }
   def Literal = rule { capture(oneOrMore(CharPredicate.AlphaNum)) ~> (_.toString) }
 }
 

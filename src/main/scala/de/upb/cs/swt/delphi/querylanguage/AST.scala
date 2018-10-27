@@ -25,11 +25,12 @@ case class XorExpr(left: CombinatorialExpr, right: CombinatorialExpr) extends Co
 
 trait SingularConditionExpr extends CombinatorialExpr
 
-case class EqualExpr(left: String, right: String) extends SingularConditionExpr
-case class NotEqualExpr(left: String, right: String) extends SingularConditionExpr
-case class GreaterThanExpr(left: String, right: String) extends SingularConditionExpr
-case class GreaterOrEqualExpr(left: String, right: String) extends SingularConditionExpr
-case class LessThanExpr(left: String, right: String) extends SingularConditionExpr
-case class LessOrEqualExpr(left: String, right: String) extends SingularConditionExpr
-case class LikeExpr(left: String, right: String) extends SingularConditionExpr
-case class TrueExpr(expr: String) extends SingularConditionExpr
+case class EqualExpr(left: FieldReference, right: String) extends SingularConditionExpr
+case class NotEqualExpr(left: FieldReference, right: String) extends SingularConditionExpr
+case class GreaterThanExpr(left: FieldReference, right: String) extends SingularConditionExpr
+case class GreaterOrEqualExpr(left: FieldReference, right: String) extends SingularConditionExpr
+case class LessThanExpr(left: FieldReference, right: String) extends SingularConditionExpr
+case class LessOrEqualExpr(left: FieldReference, right: String) extends SingularConditionExpr
+case class LikeExpr(left: FieldReference, right: String) extends SingularConditionExpr
+case class IsTrueExpr(fieldName: FieldReference) extends SingularConditionExpr
+case class FieldReference(fieldName: String) extends CombinatorialExpr
