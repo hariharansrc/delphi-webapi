@@ -57,3 +57,5 @@ scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 libraryDependencies ++= Seq(
   "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.7"
 )
+
+trapExit := false

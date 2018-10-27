@@ -26,9 +26,9 @@ import akka.util.Timeout
 import de.upb.cs.swt.delphi.featuredefinitions.FeatureListMapping
 import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
 import spray.json._
-
 import ArtifactJson._
-import scala.concurrent.ExecutionContext
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Web server configuration for Delphi web API.
@@ -122,11 +122,11 @@ object Server extends HttpApp with JsonSupport with AppLogging {
     StartupCheck.check(configuration)
     Server.startServer(configuration.bindHost, configuration.bindPort, system)
 
-    implicit val ec: ExecutionContext = ExecutionContext.global
+    implicit val ec: ExecutionContext = system.dispatcher
     val terminationFuture = system.terminate()
 
     terminationFuture.onComplete {
-      sys.exit()
+      sys.exit(0)
     }
   }
 
