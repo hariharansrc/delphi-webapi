@@ -127,7 +127,7 @@ object ArtifactJson extends DefaultJsonProtocol {
 
   def prettyPrint(pretty: Option[_], value: JsValue): String = {
     pretty.isDefined match {
-      case true => value.prettyPrint
+      case true => value.sortedPrint
       case false => value.compactPrint
     }
   }
