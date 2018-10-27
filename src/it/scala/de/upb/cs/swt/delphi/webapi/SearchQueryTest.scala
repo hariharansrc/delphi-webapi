@@ -18,8 +18,6 @@ package de.upb.cs.swt.delphi.webapi
 
 import de.upb.cs.swt.delphi.featuredefinitions.FeatureExtractor
 import org.scalatest.{FlatSpec, Matchers}
-import de.upb.cs.swt.delphi.webapi.artifacts.ArtifactJson._
-import spray.json._
 
 import scala.util.Success
 
