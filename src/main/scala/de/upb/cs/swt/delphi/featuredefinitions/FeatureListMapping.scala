@@ -18,6 +18,7 @@ package de.upb.cs.swt.delphi.featuredefinitions
 
 object FeatureListMapping {
 
+
   //Returns a list of all defined features
   def featureList: List[String] =
     (for {(key, des) <- featureMap if des != null} yield key).toList

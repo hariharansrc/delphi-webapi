@@ -23,7 +23,7 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.{HttpApp, Route}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import de.upb.cs.swt.delphi.featuredefinitions.FeatureListMapping
+import de.upb.cs.swt.delphi.featuredefinitions.{FeatureExtractor, FeatureListMapping}
 import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
 import spray.json._
 import ArtifactJson._
@@ -39,26 +39,15 @@ object Server extends HttpApp with JsonSupport with AppLogging {
   implicit val materializer = ActorMaterializer()
 
   private implicit val configuration = new Configuration()
-  private val actorManager = system.actorOf(ElasticActorManager.props(configuration))
-  private val requestLimiter = system.actorOf(ElasticRequestLimiter.props(configuration, actorManager))
   private implicit val timeout = Timeout(5, TimeUnit.SECONDS)
 
 
   override def routes: Route =
-    path("version") {
-      version
-    } ~
-      path("features") {
-        features
-      } ~
-      path("statistics") {
-        statistics
-      } ~
+    path("version") { version } ~
+      path("features") { features } ~
+      path("statistics") { statistics } ~
       pathPrefix("search" / Remaining) { query => search(query) } ~
       pathPrefix("retrieve" / Remaining) { identifier => retrieve(identifier) }
-
-  //~
-  //pathPrefix("enqueue" / Remaining) { identifier => enqueue(identifier) }
 
 
   private def version = {
@@ -69,10 +58,14 @@ object Server extends HttpApp with JsonSupport with AppLogging {
     }
   }
 
+  private val featureExtractor = new FeatureExtractor(configuration)
+
   private def features = {
     get {
-      complete {
-        FeatureListMapping.featureList.toJson
+      parameter('pretty.?) { (pretty) =>
+        complete(
+          prettyPrint(pretty, featureExtractor.featureList.toJson)
+        )
       }
     }
   }
@@ -86,7 +79,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
             import StatisticsJson._
             stats.toJson
           }
-          case _ => "Failure"
+          case _ => HttpResponse(StatusCodes.InternalServerError)
         }
       }
     }
