@@ -21,12 +21,14 @@ import org.scalatest.{FlatSpec, Matchers}
 import de.upb.cs.swt.delphi.webapi.artifacts.ArtifactJson._
 import spray.json._
 
+import scala.util.Success
+
 class SearchQueryTest extends FlatSpec with Matchers {
   "Search query" should "check for fields" in {
     val configuration = new Configuration()
     val q = new SearchQuery(configuration, new FeatureExtractor(configuration))
 
     val response = q.search("[if_icmpeq (opcode:159)]>1")
-    println(response.get.toJson)
+    response shouldBe a [Success[_]]
   }
 }
