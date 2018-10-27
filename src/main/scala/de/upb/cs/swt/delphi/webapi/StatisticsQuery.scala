@@ -16,12 +16,14 @@
 
 package de.upb.cs.swt.delphi.webapi
 
-import com.sksamuel.elastic4s.http.{ElasticClient, RequestSuccess}
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.http.search.SearchResponse
+import com.sksamuel.elastic4s.http.{ElasticClient, RequestSuccess}
+import org.slf4j.LoggerFactory
 import spray.json.DefaultJsonProtocol
 
 class StatisticsQuery(configuration: Configuration) {
+  private val log = LoggerFactory.getLogger(this.getClass)
+
   def retrieveStandardStatistics = {
     val client = ElasticClient(configuration.elasticsearchClientUri)
 
@@ -42,17 +44,38 @@ class StatisticsQuery(configuration: Configuration) {
         // TODO: These matchers are non exhaustive
       case RequestSuccess(_, _, _, results) => {
         assert(results.size == 2)
-        val total = results.items(0).response match {
-          case s: SearchResponse => {
-            s.hits.total
+        val totalOpt = results.items(0).response match {
+          case Right(s) => {
+            Some(s.hits.total)
+          }
+          case _ => {
+            println(s"Received some other response: ${results.items(0).response}")
+            None
           }
         }
-        val hermesTotal = results.items(1).response match {
-          case s: SearchResponse => {
-            s.hits.total
+        val hermesTotalOpt = results.items(1).response match {
+          case Right(s) => {
+            Some(s.hits.total)
+          }
+          case _ => {
+            println(s"Received some other response: ${results.items(1).response}")
+            None
           }
         }
-        Statistics(hermesTotal, hermesTotal)
+        totalOpt match {
+          case Some(total) => {
+            hermesTotalOpt match {
+              case Some(hermesTotal) => Some(Statistics(total, hermesTotal))
+              case _ => None
+            }
+          }
+          case _ => None
+        }
+
+      }
+      case result => {
+        log.warn(s"Request failed: $result")
+        None
       }
     }
   }
