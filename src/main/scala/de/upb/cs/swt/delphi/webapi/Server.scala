@@ -43,9 +43,15 @@ object Server extends HttpApp with JsonSupport with AppLogging {
 
 
   override def routes: Route =
-    path("version") { version } ~
-      path("features") { features } ~
-      path("statistics") { statistics } ~
+    path("version") {
+      version
+    } ~
+      path("features") {
+        features
+      } ~
+      path("statistics") {
+        statistics
+      } ~
       pathPrefix("search" / Remaining) { query => search(query) } ~
       pathPrefix("retrieve" / Remaining) { identifier => retrieve(identifier) }
 
@@ -72,14 +78,16 @@ object Server extends HttpApp with JsonSupport with AppLogging {
 
   private def statistics = {
     get {
-      complete {
-        val result = new StatisticsQuery(configuration).retrieveStandardStatistics
-        result match {
-          case Some(stats) => {
-            import StatisticsJson._
-            stats.toJson
+      parameter('pretty.?) { (pretty) =>
+        complete {
+          val result = new StatisticsQuery(configuration).retrieveStandardStatistics
+          result match {
+            case Some(stats) => {
+              import StatisticsJson._
+              prettyPrint(pretty, stats.toJson)
+            }
+            case _ => HttpResponse(StatusCodes.InternalServerError)
           }
-          case _ => HttpResponse(StatusCodes.InternalServerError)
         }
       }
     }
