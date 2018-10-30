@@ -11,11 +11,13 @@ libraryDependencies += "org.parboiled" %% "parboiled" % "2.1.4"
 libraryDependencies += "com.typesafe.akka" %% "akka-http" % akkaHttpVersion
 libraryDependencies += "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion
 libraryDependencies += "com.typesafe.akka" %% "akka-stream" % "2.5.12"
+libraryDependencies += "com.typesafe.akka" %% "akka-slf4j" % "2.5.12"
 libraryDependencies += "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion
 libraryDependencies += "io.spray" %% "spray-json" % "1.3.3"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "it,test"
-libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.11.1"
+
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3" % Runtime
 
 val elastic4sVersion = "6.3.0"
 libraryDependencies ++= Seq(
