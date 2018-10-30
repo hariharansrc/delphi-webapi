@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package de.upb.cs.swt.delphi.featuredefinitions
+package de.upb.cs.swt.delphi.webapi.featuredefinitions
 
 import com.sksamuel.elastic4s.http.{ElasticClient, RequestSuccess}
 import com.sksamuel.elastic4s.http.ElasticDsl._

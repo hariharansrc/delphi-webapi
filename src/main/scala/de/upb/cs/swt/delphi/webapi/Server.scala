@@ -23,7 +23,7 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.{HttpApp, Route}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import de.upb.cs.swt.delphi.featuredefinitions.{FeatureExtractor, FeatureListMapping}
+import de.upb.cs.swt.delphi.webapi.featuredefinitions.{FeatureExtractor, FeatureListMapping}
 import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
 import spray.json._
 import de.upb.cs.swt.delphi.webapi.artifacts.ArtifactJson._

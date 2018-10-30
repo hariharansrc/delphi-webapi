@@ -17,8 +17,8 @@
 package de.upb.cs.swt.delphi.webapi
 
 import com.sksamuel.elastic4s.http.{ElasticClient, RequestSuccess}
-import de.upb.cs.swt.delphi.featuredefinitions.FeatureExtractor
-import de.upb.cs.swt.delphi.querylanguage._
+import de.upb.cs.swt.delphi.webapi.featuredefinitions.FeatureExtractor
+import de.upb.cs.swt.delphi.webapi.querylanguage._
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchHits
 import com.sksamuel.elastic4s.searches.queries.{NoopQuery, Query}
@@ -33,7 +33,11 @@ class SearchQuery(configuration: Configuration, featureExtractor: FeatureExtract
     val fields = collectFieldNames(ast)
     if (fields.diff(featureExtractor.featureList.toSeq).size > 0) return Failure(null)
 
-    val query = searchWithType(configuration.esProjectIndex) query translate(ast) sourceInclude (ArtifactTransformer.baseFields ++ fields.intersect(featureExtractor.featureList.toSeq).map(i => addPrefix(i)))
+    val query = searchWithType(configuration.esProjectIndex)
+      .query(translate(ast))
+      .sourceInclude(ArtifactTransformer.baseFields ++ fields.intersect(featureExtractor.featureList.toSeq).map(i => addPrefix(i)))
+
+
 
     val response = client.execute {
       query

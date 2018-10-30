@@ -26,21 +26,21 @@ import scala.util.{Failure, Success, Try}
 /**
   * @author Ben Hermann
   */
-class Configuration(  //Server and Elasticsearch configuration
-                    val bindHost: String = "0.0.0.0",
-                    val bindPort: Int = 8080,
-                      val esIndex : String = "delphi",
-                      val esType : String = "project",
+class Configuration( //Server and Elasticsearch configuration
+                     val bindHost: String = "0.0.0.0",
+                     val bindPort: Int = 8080,
+                     val esIndex: String = "delphi",
+                     val esType: String = "project",
 
-                      //Actor system configuration
-                    val elasticActorPoolSize: Int = 8
+                     //Actor system configuration
+                     val elasticActorPoolSize: Int = 8
                    ) {
 
   lazy val esProjectIndex: IndexAndType = esIndex / esType
   lazy val elasticsearchClientUri: ElasticsearchClientUri = ElasticsearchClientUri(
     elasticsearchInstance.host + ":" + elasticsearchInstance.portNumber)
 
-  lazy val elasticsearchInstance : Instance = InstanceRegistry.retrieveElasticSearchInstance( configuration = this) match {
+  lazy val elasticsearchInstance: Instance = InstanceRegistry.retrieveElasticSearchInstance(configuration = this) match {
     case Success(instance) => instance
     case Failure(_) => Instance(
       None,
@@ -51,18 +51,18 @@ class Configuration(  //Server and Elasticsearch configuration
       None,
       InstanceState.Running)
   }
-  val defaultElasticSearchPort : Int = 9200
-  val defaultElasticSearchHost : String = "elasticsearch://localhost"
+  val defaultElasticSearchPort: Int = 9200
+  val defaultElasticSearchHost: String = "elasticsearch://localhost"
   val instanceName = "MyWebApiInstance"
-  val instanceRegistryUri : String = sys.env.getOrElse("DELPHI_IR_URI", "http://localhost:8087")
-  lazy val usingInstanceRegistry : Boolean = assignedID match {
+  val instanceRegistryUri: String = sys.env.getOrElse("DELPHI_IR_URI", "http://localhost:8087")
+  lazy val usingInstanceRegistry: Boolean = assignedID match {
     case Some(_) => true
     case None => false
   }
-  lazy val assignedID : Option[Long] = InstanceRegistry.handleInstanceStart(configuration = this)
+  lazy val assignedID: Option[Long] = InstanceRegistry.handleInstanceStart(configuration = this)
 
-  lazy val fallbackElasticSearchPort : Int = sys.env.get("DELPHI_ELASTIC_URI") match {
-    case Some(hostString) => if(hostString.count(c => c == ':') == 3){
+  lazy val fallbackElasticSearchPort: Int = sys.env.get("DELPHI_ELASTIC_URI") match {
+    case Some(hostString) => if (hostString.count(c => c == ':') == 3) {
       Try(hostString.split(":")(2).toInt) match {
         case Success(port) => port
         case Failure(_) => defaultElasticSearchPort
@@ -73,17 +73,17 @@ class Configuration(  //Server and Elasticsearch configuration
     case None => defaultElasticSearchPort
   }
 
-  lazy val fallbackElasticSearchHost : String = sys.env.get("DELPHI_ELASTIC_URI") match {
+  lazy val fallbackElasticSearchHost: String = sys.env.get("DELPHI_ELASTIC_URI") match {
     case Some(hostString) =>
-      if(hostString.count(c => c == ':') == 2){
-        hostString.substring(0,hostString.lastIndexOf(":"))
+      if (hostString.count(c => c == ':') == 2) {
+        hostString.substring(0, hostString.lastIndexOf(":"))
       } else {
         defaultElasticSearchHost
       }
     case None => defaultElasticSearchHost
 
   }
-  lazy val instanceId : Option[Long] = InstanceRegistry.handleInstanceStart(configuration = this)
+  lazy val instanceId: Option[Long] = InstanceRegistry.handleInstanceStart(configuration = this)
 
 }
 

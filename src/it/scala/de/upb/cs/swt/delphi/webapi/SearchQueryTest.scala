@@ -16,7 +16,7 @@
 
 package de.upb.cs.swt.delphi.webapi
 
-import de.upb.cs.swt.delphi.featuredefinitions.FeatureExtractor
+import de.upb.cs.swt.delphi.webapi.featuredefinitions.FeatureExtractor
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.util.Success

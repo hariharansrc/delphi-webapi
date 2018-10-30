@@ -16,7 +16,7 @@
 
 package de.upb.cs.swt.delphi.webapi
 
-import de.upb.cs.swt.delphi.featuredefinitions.FeatureExtractor
+import de.upb.cs.swt.delphi.webapi.featuredefinitions.FeatureExtractor
 import org.scalatest.{FlatSpec, Matchers}
 
 class FeatureExtractorCheck extends FlatSpec with Matchers {
