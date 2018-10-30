@@ -16,15 +16,12 @@
 
 package de.upb.cs.swt.delphi.webapi
 
-import com.sksamuel.elastic4s.http.{ElasticClient, RequestSuccess, Response}
 import com.sksamuel.elastic4s.http.ElasticDsl.{termQuery, _}
-import com.sksamuel.elastic4s.http.search.{SearchHit, SearchHits, SearchResponse}
+import com.sksamuel.elastic4s.http.search.SearchResponse
+import com.sksamuel.elastic4s.http.{ElasticClient, RequestSuccess, Response}
 import com.sksamuel.elastic4s.searches.queries.Query
 import com.sksamuel.elastic4s.searches.queries.term.TermQuery
-import de.upb.cs.swt.delphi.webapi.artifacts.{Artifact, ArtifactMetadata, ArtifactTransformer}
-import org.joda.time.DateTime
-import org.joda.time.format.{DateTimeFormatter, ISODateTimeFormat}
-import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, RootJsonFormat}
+import de.upb.cs.swt.delphi.webapi.artifacts.ArtifactTransformer
 
 object RetrieveQuery {
   def retrieve(identifier: String)(implicit configuration: Configuration) = {

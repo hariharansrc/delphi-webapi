@@ -23,12 +23,14 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.{HttpApp, Route}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import de.upb.cs.swt.delphi.webapi.featuredefinitions.{FeatureExtractor, FeatureListMapping}
 import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
-import spray.json._
 import de.upb.cs.swt.delphi.webapi.artifacts.ArtifactJson._
+import de.upb.cs.swt.delphi.webapi.search.QueryRequestJson._
+import de.upb.cs.swt.delphi.webapi.featuredefinitions.FeatureExtractor
+import de.upb.cs.swt.delphi.webapi.search.{QueryRequest, SearchQuery}
+import spray.json._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 /**
@@ -111,11 +113,10 @@ object Server extends HttpApp with JsonSupport with AppLogging {
   def search: Route = {
     post {
       parameter('pretty.?) { (pretty) =>
-        entity(as[JsValue]) { input =>
-          val query = input.asJsObject.fields("query").convertTo[String]
-          log.info(s"Received search query: $query")
+        entity(as[QueryRequest]) { input =>
+          log.info(s"Received search query: ${input.query}")
           complete(
-            new SearchQuery(configuration, featureExtractor).search(query) match {
+            new SearchQuery(configuration, featureExtractor).search(input) match {
               case Success(result) => prettyPrint(pretty, result.toJson)
               case Failure(e) => e.getMessage
             }

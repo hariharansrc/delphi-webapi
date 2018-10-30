@@ -14,30 +14,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package de.upb.cs.swt.delphi.webapi
+package de.upb.cs.swt.delphi.webapi.search
 
-import com.sksamuel.elastic4s.http.{ElasticClient, RequestSuccess}
-import de.upb.cs.swt.delphi.webapi.featuredefinitions.FeatureExtractor
-import de.upb.cs.swt.delphi.webapi.querylanguage._
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchHits
+import com.sksamuel.elastic4s.http.{ElasticClient, RequestSuccess}
 import com.sksamuel.elastic4s.searches.queries.{NoopQuery, Query}
+import de.upb.cs.swt.delphi.webapi.Configuration
 import de.upb.cs.swt.delphi.webapi.artifacts.ArtifactTransformer
+import de.upb.cs.swt.delphi.webapi.featuredefinitions.FeatureExtractor
+import de.upb.cs.swt.delphi.webapi.search.querylanguage._
 
 import scala.util.{Failure, Success, Try}
 
 class SearchQuery(configuration: Configuration, featureExtractor: FeatureExtractor) {
   private val client = ElasticClient(configuration.elasticsearchClientUri)
 
-  private def checkAndExecuteParsedQuery(ast: CombinatorialExpr): Try[SearchHits] = {
+  private def checkAndExecuteParsedQuery(ast: CombinatorialExpr, limit : Int): Try[SearchHits] = {
     val fields = collectFieldNames(ast)
-    if (fields.diff(featureExtractor.featureList.toSeq).size > 0) return Failure(null)
+    if (fields.diff(featureExtractor.featureList.toSeq).size > 0) return Failure(new IllegalArgumentException("Unknown field name used."))
 
     val query = searchWithType(configuration.esProjectIndex)
       .query(translate(ast))
       .sourceInclude(ArtifactTransformer.baseFields ++ fields.intersect(featureExtractor.featureList.toSeq).map(i => addPrefix(i)))
-
-
+      .limit(limit)
 
     val response = client.execute {
       query
@@ -110,12 +110,12 @@ class SearchQuery(configuration: Configuration, featureExtractor: FeatureExtract
     }
   }
 
-  def search(query: String) = {
-    val parserResult = new Syntax(query).QueryRule.run()
+  def search(query: QueryRequest) = {
+    val parserResult = new Syntax(query.query).QueryRule.run()
     parserResult match {
       case Failure(e) => Failure(e)
       case Success(ast) => {
-        checkAndExecuteParsedQuery(ast) match {
+        checkAndExecuteParsedQuery(ast, query.limit.getOrElse(50)) match {
           case Failure(e) => Failure(e)
           case Success(hits) => Success(ArtifactTransformer.transformResults(hits))
         }
