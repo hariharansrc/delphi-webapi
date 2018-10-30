@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package de.upb.cs.swt.delphi.webapi
+package de.upb.cs.swt.delphi.webapi.artifacts
 
 /**
   * Represents an identifier for a software artifact

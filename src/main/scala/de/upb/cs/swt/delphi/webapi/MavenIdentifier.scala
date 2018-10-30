@@ -19,6 +19,8 @@ package de.upb.cs.swt.delphi.webapi
 import java.net.{URI, URLEncoder}
 import java.nio.charset.StandardCharsets
 
+import de.upb.cs.swt.delphi.webapi.artifacts.Identifier
+
 case class MavenIdentifier(val repository: Option[String], val groupId: String, val artifactId: String, val version: Option[String]) extends Identifier {
 
   def toUniqueString = {
