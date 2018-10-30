@@ -16,13 +16,12 @@
 
 package de.upb.cs.swt.delphi.webapi
 
-import de.upb.cs.swt.delphi.webapi.featuredefinitions.FeatureExtractor
 import org.scalatest.{FlatSpec, Matchers}
 
-class FeatureExtractorCheck extends FlatSpec with Matchers {
+class FeatureQueryCheck extends FlatSpec with Matchers {
   "FeatureExtractor" should "provide a list of features" in {
     val configuration = new Configuration()
-    val featureList = new FeatureExtractor(configuration).featureList
+    val featureList = new FeatureQuery(configuration).featureList
 
     featureList.size should be > 0
   }

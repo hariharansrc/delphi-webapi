@@ -20,14 +20,13 @@ import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchHits
 import com.sksamuel.elastic4s.http.{ElasticClient, RequestSuccess}
 import com.sksamuel.elastic4s.searches.queries.{NoopQuery, Query}
-import de.upb.cs.swt.delphi.webapi.Configuration
+import de.upb.cs.swt.delphi.webapi.{Configuration, FeatureQuery}
 import de.upb.cs.swt.delphi.webapi.artifacts.ArtifactTransformer
-import de.upb.cs.swt.delphi.webapi.featuredefinitions.FeatureExtractor
 import de.upb.cs.swt.delphi.webapi.search.querylanguage._
 
 import scala.util.{Failure, Success, Try}
 
-class SearchQuery(configuration: Configuration, featureExtractor: FeatureExtractor) {
+class SearchQuery(configuration: Configuration, featureExtractor: FeatureQuery) {
   private val client = ElasticClient(configuration.elasticsearchClientUri)
 
   private def checkAndExecuteParsedQuery(ast: CombinatorialExpr, limit : Int): Try[SearchHits] = {

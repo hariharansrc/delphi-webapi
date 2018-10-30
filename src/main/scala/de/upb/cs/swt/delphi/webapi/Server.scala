@@ -26,7 +26,6 @@ import akka.util.Timeout
 import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
 import de.upb.cs.swt.delphi.webapi.artifacts.ArtifactJson._
 import de.upb.cs.swt.delphi.webapi.search.QueryRequestJson._
-import de.upb.cs.swt.delphi.webapi.featuredefinitions.FeatureExtractor
 import de.upb.cs.swt.delphi.webapi.search.{QueryRequest, SearchQuery}
 import spray.json._
 
@@ -67,7 +66,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
     }
   }
 
-  private val featureExtractor = new FeatureExtractor(configuration)
+  private val featureExtractor = new FeatureQuery(configuration)
 
   private def features = {
     get {

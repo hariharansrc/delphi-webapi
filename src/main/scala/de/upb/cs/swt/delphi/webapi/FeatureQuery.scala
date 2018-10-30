@@ -14,16 +14,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package de.upb.cs.swt.delphi.webapi.featuredefinitions
+package de.upb.cs.swt.delphi.webapi
 
-import com.sksamuel.elastic4s.http.{ElasticClient, RequestSuccess}
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.http.index.mappings.IndexMappings
-import de.upb.cs.swt.delphi.webapi.Configuration
+import com.sksamuel.elastic4s.http.{ElasticClient, RequestSuccess}
 import org.slf4j.LoggerFactory
 import spray.json._
 
-class FeatureExtractor(configuration: Configuration) {
+class FeatureQuery(configuration: Configuration) {
   private val log = LoggerFactory.getLogger(this.getClass)
 
   lazy val featureList: Iterable[String] = {
