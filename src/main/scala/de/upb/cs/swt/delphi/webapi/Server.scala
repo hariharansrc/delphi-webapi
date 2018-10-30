@@ -117,7 +117,7 @@ object Server extends HttpApp with JsonSupport with AppLogging {
           complete(
             new SearchQuery(configuration, featureExtractor).search(query) match {
               case Success(result) => prettyPrint(pretty, result.toJson)
-              case Failure(e) => e.toString
+              case Failure(e) => e.getMessage
             }
           )
         }
