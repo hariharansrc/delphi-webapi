@@ -38,12 +38,17 @@ object ArtifactTransformer {
       identifier("groupId"), identifier("artifactId"), identifier("version"))
   }
 
-  private def transformResult(h: SearchHit) = {
-    val sourceMap = h.sourceAsMap
-    Artifact(h.id, getMetadata(sourceMap), getHermesResults(sourceMap))
+  def transformResult(id : String, sourceMap : Map[String, AnyRef]) :Artifact = {
+    Artifact(id, getMetadata(sourceMap), getHermesResults(sourceMap))
   }
 
-  def transformResults(hits: SearchHits) = {
+
+  private def transformResult(h: SearchHit): Artifact = {
+    transformResult(h.id, h.sourceAsMap)
+  }
+
+
+  def transformResults(hits: SearchHits): Array[Artifact] = {
     hits.hits.map(h => transformResult(h))
   }
 

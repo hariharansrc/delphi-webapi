@@ -16,39 +16,32 @@
 
 package de.upb.cs.swt.delphi.webapi
 
-import com.sksamuel.elastic4s.http.ElasticDsl.{termQuery, _}
-import com.sksamuel.elastic4s.http.search.SearchResponse
+import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.http.get.GetResponse
 import com.sksamuel.elastic4s.http.{ElasticClient, RequestSuccess, Response}
-import com.sksamuel.elastic4s.searches.queries.Query
-import com.sksamuel.elastic4s.searches.queries.term.TermQuery
-import de.upb.cs.swt.delphi.webapi.artifacts.ArtifactTransformer
+import de.upb.cs.swt.delphi.webapi.artifacts.{Artifact, ArtifactTransformer}
 
 object RetrieveQuery {
-  def retrieve(identifier: String)(implicit configuration: Configuration) = {
+
+  def retrieve(identifier: String)(implicit configuration: Configuration): Option[List[Artifact]] = {
     val client = ElasticClient(configuration.elasticsearchClientUri)
 
     val parsedIdentifier = MavenIdentifier(identifier)
 
-
     parsedIdentifier match {
       case None => None
       case Some(m) => {
-        val response: Response[SearchResponse] = client.execute {
-          searchWithType(configuration.esProjectIndex) query {
-            bool {
-              must(
-                constructIdQuery(m)
-              )
-            }
-          }
+
+        val response: Response[GetResponse] = client.execute {
+          get(configuration.esProjectIndex.index, configuration.esProjectIndex.`type`, m.toUniqueString)
         }.await
 
         response match {
-          case RequestSuccess(_, body, _, results: SearchResponse) => {
-            results.totalHits match {
-              case 0L => None
+          case RequestSuccess(_, body, _, results: GetResponse) => {
+            results.found match {
+              case false => None
               case _ => {
-                Some(ArtifactTransformer.transformResults(results.hits))
+                Some(List(ArtifactTransformer.transformResult(results.id, results.sourceAsMap)))
               }
             }
           }
@@ -56,25 +49,7 @@ object RetrieveQuery {
         }
       }
     }
-
-
   }
-
-  private def constructIdQuery(m: MavenIdentifier): Iterable[Query] = {
-    val baseQuery: List[TermQuery] = List(
-      termQuery("identifier.groupId", m.groupId),
-      termQuery("identifier.artifactId", m.artifactId)
-    )
-    m.version.isDefined match {
-      case true => {
-        baseQuery.+:(termQuery("identifier.version", m.version.getOrElse("")))
-      }
-      case false => {
-        baseQuery
-      }
-    }
-  }
-
 }
 
 

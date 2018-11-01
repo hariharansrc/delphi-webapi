@@ -23,8 +23,8 @@ import de.upb.cs.swt.delphi.webapi.artifacts.Identifier
 
 case class MavenIdentifier(val repository: Option[String], val groupId: String, val artifactId: String, val version: Option[String]) extends Identifier {
 
-  def toUniqueString = {
-    repository + ":" + groupId + ":" + artifactId + ":" + version
+  def toUniqueString: String = {
+    repository.getOrElse(MavenIdentifier.DefaultRepository) + ":" + groupId + ":" + artifactId + ":" + version.getOrElse("")
   }
 
   override val toString: String = groupId + ":" + artifactId + ":" + version
@@ -38,7 +38,7 @@ case class MavenIdentifier(val repository: Option[String], val groupId: String, 
   }
 
   private def constructArtifactBaseUri(): URI =
-    new URI(repository.getOrElse(""))
+    new URI(repository.getOrElse(MavenIdentifier.DefaultRepository))
       .resolve(encode(groupId).replace('.', '/') + "/")
       .resolve(encode(artifactId) + "/")
       .resolve(encode(version.getOrElse("")) + "/")
@@ -48,16 +48,15 @@ case class MavenIdentifier(val repository: Option[String], val groupId: String, 
 }
 
 object MavenIdentifier {
+  private val DefaultRepository = "http://repo1.maven.org/maven2/"
+
   private implicit def wrapOption[A](value : A) : Option[A] = Some(value)
+
   def apply(s: String): Option[MavenIdentifier] = {
     val splitString: Array[String] = s.split(':')
     if (splitString.length < 2 || splitString.length > 3) return None
-    //if (splitString(0).startsWith("http")) {
-    //  if (splitString.length < 3) return None
-    //  MavenIdentifier(splitString(0), splitString(1), splitString(2), if (splitString.length < 4) None else splitString(3))
-    //} else {
-      //if (splitString.length > 3) return None
-      MavenIdentifier(None, splitString(0), splitString(1), if (splitString.length < 3) None else splitString(2))
-    //}
+
+    MavenIdentifier(None, splitString(0), splitString(1), if (splitString.length < 3) None else splitString(2))
+
   }
 }
