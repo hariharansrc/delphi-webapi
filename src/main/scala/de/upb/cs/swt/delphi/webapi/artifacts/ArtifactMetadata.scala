@@ -14,9 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package de.upb.cs.swt.delphi.webapi
+package de.upb.cs.swt.delphi.webapi.artifacts
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import spray.json._
+import org.joda.time.DateTime
 
-trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol
+case class ArtifactMetadata(source: String, discovered: DateTime, groupId: String, artifactId: String, version: String)

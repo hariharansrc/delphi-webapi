@@ -14,9 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package de.upb.cs.swt.delphi.webapi
+package de.upb.cs.swt.delphi.webapi.artifacts
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import spray.json._
-
-trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol
+/**
+  * Represents an identifier for a software artifact
+  */
+trait Identifier

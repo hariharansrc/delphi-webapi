@@ -16,7 +16,13 @@
 
 package de.upb.cs.swt.delphi.webapi
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import spray.json._
+import org.scalatest.{FlatSpec, Matchers}
 
-trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol
+class FeatureQueryCheck extends FlatSpec with Matchers {
+  "FeatureExtractor" should "provide a list of features" in {
+    val configuration = new Configuration()
+    val featureList = new FeatureQuery(configuration).featureList
+
+    featureList.size should be > 0
+  }
+}

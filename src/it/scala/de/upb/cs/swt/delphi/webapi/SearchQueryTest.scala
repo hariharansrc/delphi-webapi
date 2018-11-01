@@ -16,7 +16,17 @@
 
 package de.upb.cs.swt.delphi.webapi
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import spray.json._
+import de.upb.cs.swt.delphi.webapi.search.{QueryRequest, SearchQuery}
+import org.scalatest.{FlatSpec, Matchers}
 
-trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol
+import scala.util.Success
+
+class SearchQueryTest extends FlatSpec with Matchers {
+  "Search query" should "check for fields" in {
+    val configuration = new Configuration()
+    val q = new SearchQuery(configuration, new FeatureQuery(configuration))
+
+    val response = q.search(QueryRequest("[if_icmpeq (opcode:159)]>1"))
+    response shouldBe a [Success[_]]
+  }
+}
