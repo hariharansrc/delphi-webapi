@@ -147,7 +147,9 @@ object InstanceRegistry extends JsonSupport with AppLogging
     if(!configuration.usingInstanceRegistry) {
       Failure(new RuntimeException("Cannot get ElasticSearch instance from Instance Registry, no Instance Registry available."))
     } else {
-      val request = HttpRequest(method = HttpMethods.GET, configuration.instanceRegistryUri + "/matchingInstance?ComponentType=ElasticSearch")
+      val request = HttpRequest(method = HttpMethods.GET,
+        configuration.instanceRegistryUri +
+          s"/matchingInstance?Id=${configuration.assignedID.getOrElse(-1)}&ComponentType=ElasticSearch")
 
       Await.result(Http(system).singleRequest(request) map {response =>
         response.status match {
@@ -189,18 +191,17 @@ object InstanceRegistry extends JsonSupport with AppLogging
         val idToPost = configuration.elasticsearchInstance.id.getOrElse(-1L)
         val request = HttpRequest(
           method = HttpMethods.POST,
-          configuration.instanceRegistryUri + s"/matchingResult?Id=$idToPost&MatchingSuccessful=$isElasticSearchReachable")
+          configuration.instanceRegistryUri +
+            s"/matchingResult?CallerId=${configuration.assignedID.getOrElse(-1)}&MatchedInstanceId=$idToPost&MatchingSuccessful=$isElasticSearchReachable")
 
         Await.result(Http(system).singleRequest(request) map {response =>
-          val  status=response.status
           if(response.status == StatusCodes.OK){
             log.info(s"Successfully posted matching result to Instance Registry.")
             Success()
           }
           else {
-            val statuscode = response.status
-            log.warning(s"Failed to post matching result to Instance Registry, server returned $statuscode")
-            Failure(new RuntimeException(s"Failed to post matching result to Instance Registry, server returned $statuscode"))
+            log.warning(s"Failed to post matching result to Instance Registry, server returned ${response.status}")
+            Failure(new RuntimeException(s"Failed to post matching result to Instance Registry, server returned ${response.status}"))
           }
 
         } recover {case ex =>
