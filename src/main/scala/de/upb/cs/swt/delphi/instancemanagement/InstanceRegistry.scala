@@ -253,7 +253,7 @@ object InstanceRegistry extends JsonSupport with AppLogging
 
   private def createInstance(id: Option[Long], controlPort : Int, name : String) : Instance =
     Instance(id, InetAddress.getLocalHost.getHostAddress,
-      controlPort, name, ComponentType.WebApi, None, InstanceState.Running)
+      controlPort, name, ComponentType.WebApi, None, InstanceState.Running, List.empty[String])
 
   def reportStart(id: String, configuration: Configuration):Try[ResponseEntity] ={
     val request = HttpRequest(method = HttpMethods.GET, configuration.instanceRegistryUri + "/reportStart")
