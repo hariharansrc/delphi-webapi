@@ -49,7 +49,8 @@ class Configuration( //Server and Elasticsearch configuration
       "Default ElasticSearch instance",
       ComponentType.ElasticSearch,
       None,
-      InstanceState.Running)
+      InstanceState.Running,
+      List.empty[String])
   }
   val defaultElasticSearchPort: Int = 9200
   val defaultElasticSearchHost: String = "elasticsearch://localhost"
