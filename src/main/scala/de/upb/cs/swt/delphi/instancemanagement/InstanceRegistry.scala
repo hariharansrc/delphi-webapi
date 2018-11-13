@@ -18,31 +18,25 @@ package de.upb.cs.swt.delphi.instancemanagement
 
 import java.net.InetAddress
 
-import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorMaterializer
 import akka.util.ByteString
 import de.upb.cs.swt.delphi.instancemanagement.InstanceEnums.{ComponentType, InstanceState}
-import de.upb.cs.swt.delphi.webapi.{AppLogging, Configuration, Server}
-
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
+import de.upb.cs.swt.delphi.webapi.{AppLogging, Configuration, _}
 import spray.json._
 
-object InstanceRegistry extends JsonSupport with AppLogging
-{
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scala.util.{Failure, Success, Try}
 
-  implicit val system : ActorSystem = Server.system
-  implicit val ec  : ExecutionContext = system.dispatcher
-  implicit val materializer : ActorMaterializer = Server.materializer
-
-  lazy val instanceIdFromEnv : Option[Long] = Try[Long](sys.env("INSTANCE_ID").toLong).toOption
+object InstanceRegistry extends JsonSupport with AppLogging {
 
 
-  def handleInstanceStart(configuration: Configuration) : Option[Long] = {
+  lazy val instanceIdFromEnv: Option[Long] = Try[Long](sys.env("INSTANCE_ID").toLong).toOption
+
+
+  def handleInstanceStart(configuration: Configuration): Option[Long] = {
     instanceIdFromEnv match {
       case Some(id) =>
         reportStart(configuration) match {
@@ -57,49 +51,49 @@ object InstanceRegistry extends JsonSupport with AppLogging
     }
   }
 
-  def handleInstanceStop(configuration: Configuration) : Try[Unit] = {
-    if(instanceIdFromEnv.isDefined) {
+  def handleInstanceStop(configuration: Configuration): Try[Unit] = {
+    if (instanceIdFromEnv.isDefined) {
       reportStop(configuration)
     } else {
       deregister(configuration)
     }
   }
 
-  def handleInstanceFailure(configuration: Configuration) : Try[Unit] = {
-    if(instanceIdFromEnv.isDefined) {
+  def handleInstanceFailure(configuration: Configuration): Try[Unit] = {
+    if (instanceIdFromEnv.isDefined) {
       reportFailure(configuration)
     } else {
       deregister(configuration)
     }
   }
 
-  def reportStart(configuration: Configuration) : Try[Unit] = executeReportOperation(configuration, ReportOperationType.Start)
+  def reportStart(configuration: Configuration): Try[Unit] = executeReportOperation(configuration, ReportOperationType.Start)
 
-  def reportStop(configuration: Configuration) : Try[Unit] = {
-    if(configuration.usingInstanceRegistry) {
+  def reportStop(configuration: Configuration): Try[Unit] = {
+    if (configuration.usingInstanceRegistry) {
       executeReportOperation(configuration, ReportOperationType.Stop)
     } else {
       Failure(new RuntimeException("Cannot report stop, no instance registry available."))
     }
   }
 
-  def reportFailure(configuration: Configuration) : Try[Unit] = {
-    if(configuration.usingInstanceRegistry){
+  def reportFailure(configuration: Configuration): Try[Unit] = {
+    if (configuration.usingInstanceRegistry) {
       executeReportOperation(configuration, ReportOperationType.Failure)
     } else {
       Failure(new RuntimeException("Cannot report failure, no instance registry available."))
     }
   }
 
-  private def executeReportOperation(configuration: Configuration, operationType: ReportOperationType.Value) : Try[Unit] = {
+  private def executeReportOperation(configuration: Configuration, operationType: ReportOperationType.Value): Try[Unit] = {
     instanceIdFromEnv match {
       case Some(id) =>
         val request = HttpRequest(
           method = HttpMethods.POST,
           configuration.instanceRegistryUri + ReportOperationType.toOperationUriString(operationType, id))
 
-        Await.result(Http(system).singleRequest(request) map {response =>
-          if(response.status == StatusCodes.OK){
+        Await.result(Http(system).singleRequest(request) map { response =>
+          if (response.status == StatusCodes.OK) {
             log.info(s"Successfully reported ${operationType.toString} to Instance Registry.")
             Success()
           }
@@ -108,7 +102,7 @@ object InstanceRegistry extends JsonSupport with AppLogging
             Failure(new RuntimeException(s"Failed to report ${operationType.toString} to Instance Registry, server returned ${response.status}"))
           }
 
-        } recover {case ex =>
+        } recover { case ex =>
           log.warning(s"Failed to report ${operationType.toString} to Instance Registry, exception: $ex")
           Failure(new RuntimeException(s"Failed to report ${operationType.toString} to Instance Registry, exception: $ex"))
         }, Duration.Inf)
@@ -117,11 +111,12 @@ object InstanceRegistry extends JsonSupport with AppLogging
         Failure(new RuntimeException(s"Cannot report ${operationType.toString} to Instance Registry, no instance id is present in env var 'INSTANCE_ID'."))
     }
   }
-  def register(configuration: Configuration) :Try[Long]  = {
-    val instance = createInstance(None,configuration.bindPort, configuration.instanceName)
 
-    Await.result(postInstance(instance, configuration.instanceRegistryUri + "/register") map {response =>
-      if(response.status == StatusCodes.OK){
+  def register(configuration: Configuration): Try[Long] = {
+    val instance = createInstance(None, configuration.bindPort, configuration.instanceName)
+
+    Await.result(postInstance(instance, configuration.instanceRegistryUri + "/register") map { response =>
+      if (response.status == StatusCodes.OK) {
         Await.result(Unmarshal(response.entity).to[String] map { assignedID =>
           val id = assignedID.toLong
           log.info(s"Successfully registered at Instance Registry, got ID $id.")
@@ -137,25 +132,25 @@ object InstanceRegistry extends JsonSupport with AppLogging
         Failure(new RuntimeException(s"Failed to register at Instance Registry, server returned $statuscode"))
       }
 
-    } recover {case ex =>
+    } recover { case ex =>
       log.warning(s"Failed to register at Instance Registry, exception: $ex")
       Failure(ex)
     }, Duration.Inf)
   }
 
-  def retrieveElasticSearchInstance(configuration: Configuration) : Try[Instance] = {
-    if(!configuration.usingInstanceRegistry) {
+  def retrieveElasticSearchInstance(configuration: Configuration): Try[Instance] = {
+    if (!configuration.usingInstanceRegistry) {
       Failure(new RuntimeException("Cannot get ElasticSearch instance from Instance Registry, no Instance Registry available."))
     } else {
       val request = HttpRequest(method = HttpMethods.GET,
         configuration.instanceRegistryUri +
           s"/matchingInstance?Id=${configuration.assignedID.getOrElse(-1)}&ComponentType=ElasticSearch")
 
-      Await.result(Http(system).singleRequest(request) map {response =>
+      Await.result(Http(system).singleRequest(request) map { response =>
         response.status match {
           case StatusCodes.OK =>
             try {
-              val instanceString : String = Await.result(response.entity.dataBytes.runFold(ByteString(""))(_ ++ _).map(_.utf8String), 5 seconds)
+              val instanceString: String = Await.result(response.entity.dataBytes.runFold(ByteString(""))(_ ++ _).map(_.utf8String), 5 seconds)
               val esInstance = instanceString.parseJson.convertTo[Instance](instanceFormat)
               val elasticIP = esInstance.host
               log.info(s"Instance Registry assigned ElasticSearch instance at $elasticIP")
@@ -180,12 +175,12 @@ object InstanceRegistry extends JsonSupport with AppLogging
     }
   }
 
-  def sendMatchingResult(isElasticSearchReachable : Boolean, configuration: Configuration) : Try[Unit] = {
+  def sendMatchingResult(isElasticSearchReachable: Boolean, configuration: Configuration): Try[Unit] = {
 
-    if(!configuration.usingInstanceRegistry) {
+    if (!configuration.usingInstanceRegistry) {
       Failure(new RuntimeException("Cannot post matching result to Instance Registry, no Instance Registry available."))
     } else {
-      if(configuration.elasticsearchInstance.id.isEmpty) {
+      if (configuration.elasticsearchInstance.id.isEmpty) {
         Failure(new RuntimeException("Cannot post matching result to Instance Registry, assigned ElasticSearch instance has no ID."))
       } else {
         val idToPost = configuration.elasticsearchInstance.id.getOrElse(-1L)
@@ -194,8 +189,8 @@ object InstanceRegistry extends JsonSupport with AppLogging
           configuration.instanceRegistryUri +
             s"/matchingResult?CallerId=${configuration.assignedID.getOrElse(-1)}&MatchedInstanceId=$idToPost&MatchingSuccessful=$isElasticSearchReachable")
 
-        Await.result(Http(system).singleRequest(request) map {response =>
-          if(response.status == StatusCodes.OK){
+        Await.result(Http(system).singleRequest(request) map { response =>
+          if (response.status == StatusCodes.OK) {
             log.info(s"Successfully posted matching result to Instance Registry.")
             Success()
           }
@@ -204,7 +199,7 @@ object InstanceRegistry extends JsonSupport with AppLogging
             Failure(new RuntimeException(s"Failed to post matching result to Instance Registry, server returned ${response.status}"))
           }
 
-        } recover {case ex =>
+        } recover { case ex =>
           log.warning(s"Failed to post matching result to Instance Registry, exception: $ex")
           Failure(new RuntimeException(s"Failed to post matching result tot Instance Registry, exception: $ex"))
         }, Duration.Inf)
@@ -213,16 +208,16 @@ object InstanceRegistry extends JsonSupport with AppLogging
 
   }
 
-  def deregister(configuration: Configuration) : Try[Unit] = {
-    if(!configuration.usingInstanceRegistry){
+  def deregister(configuration: Configuration): Try[Unit] = {
+    if (!configuration.usingInstanceRegistry) {
       Failure(new RuntimeException("Cannot deregister from Instance Registry, no Instance Registry available."))
     } else {
-      val id : Long = configuration.assignedID.getOrElse(-1L)
+      val id: Long = configuration.assignedID.getOrElse(-1L)
 
       val request = HttpRequest(method = HttpMethods.POST, configuration.instanceRegistryUri + s"/deregister?Id=$id")
 
-      Await.result(Http(system).singleRequest(request) map {response =>
-        if(response.status == StatusCodes.OK){
+      Await.result(Http(system).singleRequest(request) map { response =>
+        if (response.status == StatusCodes.OK) {
           log.info("Successfully deregistered from Instance Registry.")
           Success()
         }
@@ -232,14 +227,14 @@ object InstanceRegistry extends JsonSupport with AppLogging
           Failure(new RuntimeException(s"Failed to deregister from Instance Registry, server returned $statuscode"))
         }
 
-      } recover {case ex =>
+      } recover { case ex =>
         log.warning(s"Failed to deregister to Instance Registry, exception: $ex")
         Failure(ex)
       }, Duration.Inf)
     }
   }
 
-  def postInstance(instance : Instance, uri: String) () : Future[HttpResponse] = {
+  def postInstance(instance: Instance, uri: String)(): Future[HttpResponse] = {
     try {
       val request = HttpRequest(method = HttpMethods.POST, uri = uri, entity = instance.toJson(instanceFormat).toString())
       Http(system).singleRequest(request)
@@ -251,14 +246,14 @@ object InstanceRegistry extends JsonSupport with AppLogging
   }
 
 
-  private def createInstance(id: Option[Long], controlPort : Int, name : String) : Instance =
+  private def createInstance(id: Option[Long], controlPort: Int, name: String): Instance =
     Instance(id, InetAddress.getLocalHost.getHostAddress,
       controlPort, name, ComponentType.WebApi, None, InstanceState.Running, List.empty[String])
 
-  def reportStart(id: String, configuration: Configuration):Try[ResponseEntity] ={
+  def reportStart(id: String, configuration: Configuration): Try[ResponseEntity] = {
     val request = HttpRequest(method = HttpMethods.GET, configuration.instanceRegistryUri + "/reportStart")
-    Await.result(Http(system).singleRequest(request) map {response =>
-      if(response.status == StatusCodes.OK){
+    Await.result(Http(system).singleRequest(request) map { response =>
+      if (response.status == StatusCodes.OK) {
         Success(response.entity)
       }
       else {
@@ -266,17 +261,17 @@ object InstanceRegistry extends JsonSupport with AppLogging
         log.warning(s"Failed to perform reportStart, server returned $statuscode")
         Failure(new RuntimeException(s"Failed to perform reportStart, server returned $statuscode"))
       }
-    } recover {case ex =>
+    } recover { case ex =>
       log.warning(s"Failed to perform reportStart, exception: $ex")
       Failure(new RuntimeException(s"Failed to perform reportStart, server returned, exception: $ex"))
     }, Duration.Inf)
   }
 
-  def reportFailure(id: String, configuration: Configuration):Try[ResponseEntity] = {
+  def reportFailure(id: String, configuration: Configuration): Try[ResponseEntity] = {
 
     val request = HttpRequest(method = HttpMethods.GET, configuration.instanceRegistryUri + "/reportFailure")
-    Await.result(Http(system).singleRequest(request) map {response =>
-      if(response.status == StatusCodes.OK){
+    Await.result(Http(system).singleRequest(request) map { response =>
+      if (response.status == StatusCodes.OK) {
         Success(response.entity)
       }
       else {
@@ -284,17 +279,17 @@ object InstanceRegistry extends JsonSupport with AppLogging
         log.warning(s"Failed to perform reportFailure, server returned $statuscode")
         Failure(new RuntimeException(s"Failed to perform reportFailure, server returned $statuscode"))
       }
-    } recover {case ex =>
+    } recover { case ex =>
       log.warning(s"Failed to perform reportFailure, server returned, exception: $ex")
       Failure(new RuntimeException(s"Failed to perform reportFailure, server returned, exception: $ex"))
     }, Duration.Inf)
   }
 
-  def reportStop(id: String, configuration: Configuration):Try[ResponseEntity] = {
+  def reportStop(id: String, configuration: Configuration): Try[ResponseEntity] = {
 
     val request = HttpRequest(method = HttpMethods.GET, configuration.instanceRegistryUri + "/reportStop")
-    Await.result(Http(system).singleRequest(request) map {response =>
-      if(response.status == StatusCodes.OK){
+    Await.result(Http(system).singleRequest(request) map { response =>
+      if (response.status == StatusCodes.OK) {
         Success(response.entity)
       }
       else {
@@ -302,18 +297,18 @@ object InstanceRegistry extends JsonSupport with AppLogging
         log.warning(s"Failed to perform reportStop, server returned $statuscode")
         Failure(new RuntimeException(s"Failed to perform reportStop, server returned $statuscode"))
       }
-    } recover {case ex =>
+    } recover { case ex =>
       log.warning(s"Failed to perform reportStop, server returned, exception: $ex")
       Failure(new RuntimeException(s"Failed to perform reportStop, server returned, exception: $ex"))
     }, Duration.Inf)
   }
 
   object ReportOperationType extends Enumeration {
-    val Start : Value = Value("Start")
-    val Stop : Value = Value("Stop")
-    val Failure : Value = Value("Failure")
+    val Start: Value = Value("Start")
+    val Stop: Value = Value("Stop")
+    val Failure: Value = Value("Failure")
 
-    def toOperationUriString(operation: ReportOperationType.Value, id: Long) : String = {
+    def toOperationUriString(operation: ReportOperationType.Value, id: Long): String = {
       operation match {
         case Start =>
           s"/reportStart?Id=$id"
@@ -324,4 +319,5 @@ object InstanceRegistry extends JsonSupport with AppLogging
       }
     }
   }
+
 }
