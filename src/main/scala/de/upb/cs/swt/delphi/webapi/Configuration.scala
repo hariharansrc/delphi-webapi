@@ -19,7 +19,7 @@ package de.upb.cs.swt.delphi.webapi
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.{ElasticsearchClientUri, Index, IndexAndType}
 import de.upb.cs.swt.delphi.instancemanagement.InstanceEnums.{ComponentType, InstanceState}
-import de.upb.cs.swt.delphi.instancemanagement.{Instance, InstanceRegistry}
+import de.upb.cs.swt.delphi.instancemanagement.{Instance, InstanceLink, InstanceRegistry}
 
 import scala.util.{Failure, Success, Try}
 
@@ -50,7 +50,9 @@ class Configuration( //Server and Elasticsearch configuration
       ComponentType.ElasticSearch,
       None,
       InstanceState.Running,
-      List.empty[String])
+      List.empty[String],
+      List.empty[InstanceLink],
+      List.empty[InstanceLink])
   }
   val defaultElasticSearchPort: Int = 9200
   val defaultElasticSearchHost: String = "elasticsearch://localhost"

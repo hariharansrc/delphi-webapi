@@ -30,7 +30,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success, Try}
 
-object InstanceRegistry extends JsonSupport with AppLogging {
+object InstanceRegistry extends InstanceJsonSupport with AppLogging {
 
 
   lazy val instanceIdFromEnv: Option[Long] = Try[Long](sys.env("INSTANCE_ID").toLong).toOption
@@ -248,7 +248,7 @@ object InstanceRegistry extends JsonSupport with AppLogging {
 
   private def createInstance(id: Option[Long], controlPort: Int, name: String): Instance =
     Instance(id, InetAddress.getLocalHost.getHostAddress,
-      controlPort, name, ComponentType.WebApi, None, InstanceState.Running, List.empty[String])
+      controlPort, name, ComponentType.WebApi, None, InstanceState.Running, List.empty[String], List.empty[InstanceLink], List.empty[InstanceLink])
 
   def reportStart(id: String, configuration: Configuration): Try[ResponseEntity] = {
     val request = HttpRequest(method = HttpMethods.GET, configuration.instanceRegistryUri + "/reportStart")
