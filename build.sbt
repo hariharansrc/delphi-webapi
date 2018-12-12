@@ -24,6 +24,8 @@ libraryDependencies ++= Seq(
   "com.sksamuel.elastic4s" %% "elastic4s-http-streams" % elastic4sVersion,
 )
 
+libraryDependencies += "com.pauldijou" %% "jwt-core" % "1.0.0"
+
 libraryDependencies += "org.parboiled" %% "parboiled" % "2.1.4"
 libraryDependencies += "io.spray" %% "spray-json" % "1.3.3"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
