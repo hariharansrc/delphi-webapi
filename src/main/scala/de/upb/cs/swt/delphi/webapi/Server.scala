@@ -31,17 +31,13 @@ object Server extends HttpApp with JsonSupport with AppLogging {
 
 
   def main(args: Array[String]): Unit = {
-    sys.addShutdownHook({
-      log.warning("Received shutdown signal.")
-      InstanceRegistry.handleInstanceStop(configuration)
-    })
 
     StartupCheck.check(configuration)
     Server.startServer(configuration.bindHost, configuration.bindPort, system)
 
-    val terminationFuture = system.terminate()
+    InstanceRegistry.handleInstanceStop(configuration)
 
-    terminationFuture.onComplete {
+    system.terminate().onComplete{
       sys.exit(0)
     }
   }
