@@ -94,7 +94,10 @@ object InstanceRegistry extends InstanceJsonSupport with AppLogging {
           method = HttpMethods.POST,
           configuration.instanceRegistryUri + ReportOperationType.toOperationUriString(operationType, id))
 
-        Await.result(Http(system).singleRequest(request.withHeaders(RawHeader("Authorization",s"Bearer ${AuthProvider.generateJwt()}"))) map { response =>
+        val useGenericNameForToken = operationType == ReportOperationType.Start //Must use generic name for startup, no id known at that point
+
+        Await.result(Http(system).singleRequest(request.withHeaders(RawHeader("Authorization",
+          s"Bearer ${AuthProvider.generateJwt(useGenericName = useGenericNameForToken)}"))) map { response =>
           if (response.status == StatusCodes.OK) {
             log.info(s"Successfully reported ${operationType.toString} to Instance Registry.")
             Success()
@@ -239,7 +242,8 @@ object InstanceRegistry extends InstanceJsonSupport with AppLogging {
   def postInstance(instance: Instance, uri: String)(): Future[HttpResponse] = {
     try {
       val request = HttpRequest(method = HttpMethods.POST, uri = uri, entity = instance.toJson(instanceFormat).toString())
-      Http(system).singleRequest(request.withHeaders(RawHeader("Authorization",s"Bearer ${AuthProvider.generateJwt()}")))
+      //Use generic name for startup, no id present at this point
+      Http(system).singleRequest(request.withHeaders(RawHeader("Authorization",s"Bearer ${AuthProvider.generateJwt(useGenericName =  true)}")))
     } catch {
       case dx: DeserializationException =>
         log.warning(s"Failed to deregister to Instance Registry, exception: $dx")

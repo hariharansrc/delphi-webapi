@@ -17,16 +17,15 @@ package de.upb.cs.swt.delphi.webapi.authorization
 
 import de.upb.cs.swt.delphi.webapi
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
-import spray.json.{JsArray, JsString}
 
 object AuthProvider {
 
-  def generateJwt(validFor: Long = 3): String = {
+  def generateJwt(validFor: Long = 1, useGenericName: Boolean = false): String = {
     val claim = JwtClaim()
       .issuedNow
-      .expiresIn(validFor)
+      .expiresIn(validFor * 60)
       .startsNow
-      .+("user_id", webapi.configuration.instanceName)
+      .+("user_id", if (useGenericName) webapi.configuration.instanceName else s"${webapi.configuration.assignedID.get}")
       .+("user_type", "Component")
 
 
