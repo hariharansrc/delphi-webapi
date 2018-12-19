@@ -129,7 +129,7 @@ class SearchQuery(configuration: Configuration, featureExtractor: FeatureQuery) 
 
   def search(query: QueryRequest): Try[Array[Artifact]] = {
     lazy val size = checkValidSize
-    val validSize = size.exists(query.limit.getOrElse(defaultFetchSize) < _)
+    val validSize = size.exists(query.limit.getOrElse(defaultFetchSize) <= _)
     if (validSize) {
       val parserResult = new Syntax(query.query).QueryRule.run()
       parserResult match {

@@ -16,17 +16,24 @@
 
 package de.upb.cs.swt.delphi.webapi
 
-import de.upb.cs.swt.delphi.webapi.search.{QueryRequest, SearchQuery}
+import de.upb.cs.swt.delphi.webapi.search.{QueryRequest, SearchError, SearchQuery}
 import org.scalatest.{FlatSpec, Matchers}
 
-import scala.util.Success
+import scala.util.Failure
 
 class SearchQueryTest extends FlatSpec with Matchers {
-  "Search query" should "check for fields" in {
+  "Search query" should "fail on large request limit" in {
     val configuration = new Configuration()
     val q = new SearchQuery(configuration, new FeatureQuery(configuration))
-
-    val response = q.search(QueryRequest("[if_icmpeq (opcode:159)]>1"))
-    response shouldBe a [Success[_]]
+    val size = 20000
+    val response = q.search(QueryRequest("[dstore_1 (opcode:72)]<1", Some(size)))
+    response match {
+      case Failure(exception) => {
+        exception shouldBe a[SearchError]
+      }
+      case _ => {
+        fail("Limit exceeded should fail")
+      }
+    }
   }
 }
