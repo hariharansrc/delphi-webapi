@@ -58,3 +58,5 @@ libraryDependencies ++= Seq(
 )
 
 trapExit := false
+fork := true
+connectInput := true
