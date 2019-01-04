@@ -88,6 +88,8 @@ class Configuration( //Server and Elasticsearch configuration
   }
   lazy val instanceId: Option[Long] = InstanceRegistry.handleInstanceStart(configuration = this)
 
+  val jwtSecretKey: String  = sys.env.getOrElse("DELPHI_JWT_SECRET","changeme")
+
 }
 
 

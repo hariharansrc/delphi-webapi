@@ -13,36 +13,23 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+package de.upb.cs.swt.delphi.webapi.authorization
 
-package de.upb.cs.swt.delphi.webapi
+import de.upb.cs.swt.delphi.webapi
+import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 
-import akka.http.scaladsl.server.{HttpApp, Route}
-import de.upb.cs.swt.delphi.instancemanagement.InstanceRegistry
+object AuthProvider {
 
-/**
-  * Web server configuration for Delphi web API.
-  */
-object Server extends HttpApp with JsonSupport with AppLogging {
-  val delphiRoutes = DelphiRoutes()
+  def generateJwt(validFor: Long = 1, useGenericName: Boolean = false): String = {
+    val claim = JwtClaim()
+      .issuedNow
+      .expiresIn(validFor * 60)
+      .startsNow
+      . + ("user_id", if (useGenericName) webapi.configuration.instanceName else s"${webapi.configuration.assignedID.get}")
+      . + ("user_type", "Component")
 
-  override def routes: Route = {
-    delphiRoutes
+
+    Jwt.encode(claim, webapi.configuration.jwtSecretKey, JwtAlgorithm.HS256)
   }
-
-
-  def main(args: Array[String]): Unit = {
-
-    StartupCheck.check(configuration)
-    Server.startServer(configuration.bindHost, configuration.bindPort, system)
-
-    InstanceRegistry.handleInstanceStop(configuration)
-
-    system.terminate().onComplete{
-      sys.exit(0)
-    }
-  }
-
 
 }
-
-
