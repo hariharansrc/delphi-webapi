@@ -25,8 +25,8 @@ object AuthProvider {
       .issuedNow
       .expiresIn(validFor * 60)
       .startsNow
-      .+("user_id", if (useGenericName) webapi.configuration.instanceName else s"${webapi.configuration.assignedID.get}")
-      .+("user_type", "Component")
+      . + ("user_id", if (useGenericName) webapi.configuration.instanceName else s"${webapi.configuration.assignedID.get}")
+      . + ("user_type", "Component")
 
 
     Jwt.encode(claim, webapi.configuration.jwtSecretKey, JwtAlgorithm.HS256)
