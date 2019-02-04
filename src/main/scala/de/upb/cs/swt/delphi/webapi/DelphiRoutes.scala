@@ -27,7 +27,7 @@ import de.upb.cs.swt.delphi.webapi.IpLogActor._
 import de.upb.cs.swt.delphi.webapi.StatisticsJson._
 import de.upb.cs.swt.delphi.webapi.artifacts.ArtifactJson._
 import de.upb.cs.swt.delphi.webapi.search.QueryRequestJson._
-import de.upb.cs.swt.delphi.webapi.search.{QueryRequest, SearchQuery}
+import de.upb.cs.swt.delphi.webapi.search.{QueryRequest, SearchError, SearchQuery}
 import spray.json._
 
 import scala.concurrent.duration._
@@ -118,7 +118,16 @@ class DelphiRoutes(requestLimiter: RequestLimitScheduler) extends JsonSupport wi
           complete(
             new SearchQuery(configuration, featureExtractor).search(input) match {
               case Success(result) => prettyPrint(pretty, result.toJson)
-              case Failure(e) => e.getMessage
+              case Failure(e) => {
+                e match {
+                  case se: SearchError => {
+                    se.toJson
+                  }
+                  case _ => {
+                    new SearchError("Search query failed").toJson
+                  }
+                }
+              }
             }
           )
         }
