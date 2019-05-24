@@ -13,10 +13,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package de.upb.cs.swt.delphi.webapi.search
 
-import spray.json.DefaultJsonProtocol
+package de.upb.cs.swt.delphi.webapi
 
-object QueryRequestJson extends DefaultJsonProtocol {
-  implicit val queryRequestFormat = jsonFormat2(QueryRequest)
+import spray.json._
+
+package object search {
+
+  val defaultFetchSize = 50
+
+  class SearchError(msg: String) extends RuntimeException(msg) with JsonSupport
+
+  implicit val searchErrorWriter = new JsonWriter[SearchError] {
+    override def write(obj: SearchError): JsValue = {
+      JsObject("msg" -> JsString(obj.getMessage))
+    }
+  }
+
 }

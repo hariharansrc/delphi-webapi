@@ -24,6 +24,8 @@ libraryDependencies ++= Seq(
   "com.sksamuel.elastic4s" %% "elastic4s-http-streams" % elastic4sVersion,
 )
 
+libraryDependencies += "com.pauldijou" %% "jwt-core" % "1.0.0"
+
 libraryDependencies += "org.parboiled" %% "parboiled" % "2.1.4"
 libraryDependencies += "io.spray" %% "spray-json" % "1.3.3"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
@@ -54,7 +56,9 @@ scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 // Pinning secure versions of insecure transitive libraryDependencies
 // Please update when updating dependencies above (including Play plugin)
 libraryDependencies ++= Seq(
-  "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.7"
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.9"
 )
 
 trapExit := false
+fork := true
+connectInput := true
