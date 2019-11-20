@@ -5,24 +5,28 @@ version := "1.0.0-SNAPSHOT"
 scalaVersion := "2.12.4"
 
 val akkaVersion = "2.5.16"
-libraryDependencies ++= Seq (
+libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
 )
 
 val akkaHttpVersion = "10.1.5"
-libraryDependencies ++= Seq (
+libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion
 )
+//Including http client for elastic4s
+libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.5.3"
 
 val elastic4sVersion = "6.3.8"
 libraryDependencies ++= Seq(
   "com.sksamuel.elastic4s" %% "elastic4s-core" % elastic4sVersion,
-  "com.sksamuel.elastic4s" %% "elastic4s-http" % elastic4sVersion,
+  //Excluding default 4.5.2 due to https://snyk.io/vuln/SNYK-JAVA-ORGAPACHEHTTPCOMPONENTS-31517
+  "com.sksamuel.elastic4s" %% "elastic4s-http" % elastic4sVersion exclude("org.apache.httpcomponents", "httpclient"),
   "com.sksamuel.elastic4s" %% "elastic4s-http-streams" % elastic4sVersion,
 )
+
 
 libraryDependencies += "com.pauldijou" %% "jwt-core" % "1.0.0"
 
@@ -34,10 +38,10 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3" % Runtime
 
 lazy val webapi = (project in file(".")).
   //https://www.scala-sbt.org/1.x/docs/Testing.html
-configs(IntegrationTest).
+  configs(IntegrationTest).
   settings(
     Defaults.itSettings,
-   ).
+  ).
   enablePlugins(JavaAppPackaging).
   enablePlugins(DockerPlugin).
   enablePlugins(ScalastylePlugin).
