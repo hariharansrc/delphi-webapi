@@ -4,7 +4,7 @@ version := "1.0.0-SNAPSHOT"
 
 scalaVersion := "2.12.4"
 
-val akkaVersion = "2.5.14"
+val akkaVersion = "2.5.16"
 libraryDependencies ++= Seq (
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
@@ -17,7 +17,7 @@ libraryDependencies ++= Seq (
   "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion
 )
 
-val elastic4sVersion = "6.3.0"
+val elastic4sVersion = "6.3.8"
 libraryDependencies ++= Seq(
   "com.sksamuel.elastic4s" %% "elastic4s-core" % elastic4sVersion,
   "com.sksamuel.elastic4s" %% "elastic4s-http" % elastic4sVersion,
@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
 libraryDependencies += "com.pauldijou" %% "jwt-core" % "1.0.0"
 
 libraryDependencies += "org.parboiled" %% "parboiled" % "2.1.4"
-libraryDependencies += "io.spray" %% "spray-json" % "1.3.3"
+libraryDependencies += "io.spray" %% "spray-json" % "1.3.5"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "it,test"
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3" % Runtime
@@ -56,7 +56,7 @@ scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 // Pinning secure versions of insecure transitive libraryDependencies
 // Please update when updating dependencies above (including Play plugin)
 libraryDependencies ++= Seq(
-  "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.9"
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.10.1"
 )
 
 trapExit := false
